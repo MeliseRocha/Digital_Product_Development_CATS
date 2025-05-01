@@ -21,3 +21,33 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+rasa-env/
+
+# Flask-specific
+instance/
+*.pyc
+
+# Rasa-specific files
+models/            
+results/          
+.rasa/             
+*.md               
+.nlu.json          
+# Environment/config files
+.env
+config.json
+
+# Cache and temporary files
+.DS_Store
+.pytest_cache/
+.mypy_cache/
+coverage/
