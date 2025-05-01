@@ -1,0 +1,47 @@
+{
+  "lookup": {
+    "rules": {
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}]": "utter_ask_smoking_frequency",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking_frequency\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}]": "action_listen",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_chronic_diseases\"}, \"slots\": {\"chronic_diseases\": \"should_not_be_set\"}}]": "action_listen",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}]": "utter_ask_smoking_frequency",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking_frequency\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}]": "action_listen",
+      "[{\"active_loop\": {\"name\": \"should_not_be_set\"}, \"prev_action\": {\"action_name\": \"medical_history_form\"}}]": "utter_goodbye",
+      "[{\"active_loop\": {\"name\": \"should_not_be_set\"}, \"prev_action\": {\"action_name\": \"medical_history_form\"}}, {\"active_loop\": {\"name\": \"should_not_be_set\"}, \"prev_action\": {\"action_name\": \"utter_goodbye\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"greet\"}}]": "utter_greet",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"greet\"}}, {\"prev_action\": {\"action_name\": \"utter_greet\"}, \"user\": {\"intent\": \"greet\"}}]": "medical_history_form",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"greet\"}}, {\"prev_action\": {\"action_name\": \"utter_greet\"}, \"user\": {\"intent\": \"greet\"}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"medical_history_form\"}, \"user\": {\"intent\": \"greet\"}}]": "action_listen"
+    },
+    "rule_only_slots": [
+      "chronic_diseases",
+      "smoking"
+    ],
+    "rule_only_loops": [
+      "medical_history_form"
+    ],
+    "rules_for_loop_unhappy_path": {
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}]": "do_not_predict_loop_action",
+      "[{\"prev_action\": {\"action_name\": \"utter_ask_smoking\"}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking_frequency\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}]": "do_not_predict_loop_action",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_chronic_diseases\"}, \"slots\": {\"chronic_diseases\": \"should_not_be_set\"}}]": "do_not_predict_loop_action",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}]": "do_not_predict_loop_action",
+      "[{\"prev_action\": {\"action_name\": \"utter_ask_smoking\"}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking_frequency\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}]": "do_not_predict_loop_action",
+      "[{\"prev_action\": {\"action_name\": \"utter_greet\"}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"medical_history_form\"}, \"user\": {\"intent\": \"greet\"}}]": "do_not_predict_loop_action"
+    },
+    "rules_not_in_stories": [
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}]",
+      "handling active loops and forms - medical_history_form - action_listen",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}]",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking_frequency\"}, \"slots\": {\"smoking\": [1.0, 1.0]}}]",
+      "predicting default action with intent session_start",
+      "handling active loops and forms - medical_history_form",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"greet\"}}]",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"greet\"}}, {\"prev_action\": {\"action_name\": \"utter_greet\"}, \"user\": {\"intent\": \"greet\"}}]",
+      "predicting default action with intent back",
+      "predicting default action with intent restart",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}, {\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_smoking_frequency\"}, \"slots\": {\"smoking\": [1.0, 0.0]}}]",
+      "[{\"active_loop\": {\"name\": \"should_not_be_set\"}, \"prev_action\": {\"action_name\": \"medical_history_form\"}}, {\"active_loop\": {\"name\": \"should_not_be_set\"}, \"prev_action\": {\"action_name\": \"utter_goodbye\"}}]",
+      "[{\"active_loop\": {\"name\": \"should_not_be_set\"}, \"prev_action\": {\"action_name\": \"medical_history_form\"}}]",
+      "[{\"active_loop\": {\"name\": \"medical_history_form\"}, \"prev_action\": {\"action_name\": \"utter_ask_chronic_diseases\"}, \"slots\": {\"chronic_diseases\": \"should_not_be_set\"}}]"
+    ]
+  }
+}
