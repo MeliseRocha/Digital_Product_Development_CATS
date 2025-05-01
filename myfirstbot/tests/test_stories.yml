@@ -1,0 +1,16 @@
+version: "3.0"
+stories:
+  - story: medical history conversation
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: inform_health_issue
+      - action: utter_ask_health_issue
+      - intent: inform_medication
+      - action: utter_ask_medication
+      - intent: inform_hospitalization
+      - action: utter_ask_hospitalization
+      - intent: inform_allergy
+      - action: utter_ask_allergy
+      - intent: goodbye
+      - action: utter_thank_you

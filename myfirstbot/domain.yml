@@ -1,0 +1,65 @@
+version: "3.1"
+
+intents:
+  - greet
+  - affirm
+  - deny
+  - chronic_diseases
+  - smoking_frequency
+
+entities:
+  - chronic_diseases
+  - smoking_frequency
+
+slots:
+  chronic_diseases:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: chronic_diseases
+
+  smoking:
+    type: bool
+    mappings:
+      - type: from_intent
+        intent: affirm
+        value: true
+      - type: from_intent
+        intent: deny
+        value: false
+
+  smoking_frequency:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: smoking_frequency
+
+responses:
+  utter_greet:
+    - text: "Hello! I will help you build your medical history."
+
+  utter_ask_chronic_diseases:
+    - text: "Do you have any chronic diseases? If yes, list them."
+
+  utter_ask_smoking:
+    - text: "Do you smoke?"
+
+  utter_ask_smoking_frequency:
+    - text: "How frequently do you smoke?"
+
+  utter_goodbye:
+    - text: "Goodbye!"
+
+forms:
+  medical_history_form:
+    required_slots:
+      - chronic_diseases
+      - smoking
+      - smoking_frequency
+
+actions:
+  - validate_medical_history_form

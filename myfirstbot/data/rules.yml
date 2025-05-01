@@ -1,0 +1,40 @@
+version: "3.1"
+
+rules:
+  - rule: Start medical history form
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - action: medical_history_form
+      - active_loop: medical_history_form
+
+  - rule: Ask for chronic diseases
+    steps:
+      - active_loop: medical_history_form
+      - action: utter_ask_chronic_diseases
+      - slot_was_set:
+          - chronic_diseases: null
+
+  - rule: Ask about smoking
+    steps:
+      - active_loop: medical_history_form
+      - action: utter_ask_smoking
+      - slot_was_set:
+          - smoking: true
+      - action: utter_ask_smoking_frequency
+
+  - rule: Skip smoking question if no smoking
+    steps:
+      - active_loop: medical_history_form
+      - action: utter_ask_smoking
+      - slot_was_set:
+          - smoking: false
+      - action: utter_ask_smoking_frequency
+
+  - rule: Submit medical history form
+    condition:
+      - active_loop: medical_history_form
+    steps:
+      - action: medical_history_form
+      - active_loop: null
+      - action: utter_goodbye

@@ -1,0 +1,9 @@
+{
+  "rule_only_slots": [
+    "chronic_diseases",
+    "smoking"
+  ],
+  "rule_only_loops": [
+    "medical_history_form"
+  ]
+}

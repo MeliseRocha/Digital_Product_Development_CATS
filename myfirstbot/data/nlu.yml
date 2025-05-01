@@ -1,0 +1,36 @@
+version: "3.0"
+nlu:
+  - intent: greet
+    examples: |
+      - hello
+      - hi
+      - hey
+      - good morning
+
+  - intent: affirm
+    examples: |
+      - yes
+      - sure
+      - absolutely
+      - of course
+
+  - intent: deny
+    examples: |
+      - no
+      - not really
+      - no thanks
+      - not at all
+
+  - intent: chronic_diseases
+    examples: |
+      - I have diabetes
+      - I suffer from hypertension
+      - I have asthma
+      - I have chronic back pain
+
+  - intent: smoking_frequency
+    examples: |
+      - I smoke daily
+      - I smoke once a week
+      - I smoke a pack a day
+      - I smoke occasionally
