@@ -25,24 +25,56 @@
 #         dispatcher.utter_message(text="Hello World!")
 #
 #         return []
-from typing import Any, Dict, Text
-from rasa_sdk import Tracker
+from typing import Any, Text, Dict, List
+from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from rasa_sdk.forms import FormValidationAction
-from rasa_sdk.types import DomainDict
+from rasa_sdk.events import SlotSet
 
-class ValidateMedicalHistoryForm(FormValidationAction):
+from rasa_sdk.events import ActionExecuted, SessionStarted
+
+
+class ActionSummary(Action):
     def name(self) -> Text:
-        return "validate_medical_history_form"
+        return "action_summary"
 
-    def validate_smoking_frequency(
-        self,
-        slot_value: Any,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: DomainDict,
-    ) -> Dict[Text, Any]:
-        # If the user does not smoke, skip this question
-        if tracker.get_slot("smoking") is False:
-            return {"smoking_frequency": None}
-        return {"smoking_frequency": slot_value}
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        chronic = tracker.get_slot("chronic_disease")
+        smoking = tracker.get_slot("smoking_info")
+
+        dispatcher.utter_message(text=f"Here's what I've collected:\nChronic Disease: {chronic}\nSmoking Info: {smoking}\nDo you want to change anything? (yes/no)")
+        return []
+
+from rasa_sdk.events import SlotSet, ActiveLoop, FollowupAction
+
+from rasa_sdk.events import SlotSet, ActiveLoop, FollowupAction
+
+class ActionCorrectSlot(Action):
+    def name(self) -> Text:
+        return "action_correct_slot"
+
+    def run(self, dispatcher, tracker, domain):
+        last_user_msg = tracker.latest_message.get("text", "").lower()
+        print(f"msg: {last_user_msg}")  # For debugging purposes
+
+        # Check if user typed '1' for chronic disease
+        if last_user_msg == "1":
+            dispatcher.utter_message(text="Please tell me again: Do you have any chronic disease?")
+            return [
+                SlotSet("chronic_disease", None),
+                ActiveLoop("medical_history_form"),
+                FollowupAction("medical_history_form")
+            ]
+        # Check if user typed '2' for smoking info
+        elif last_user_msg == "2":
+            dispatcher.utter_message(text="Please tell me again: Do you smoke? If yes, how many cigarettes a day?")
+            return [
+                SlotSet("smoking_info", None),
+                ActiveLoop("medical_history_form"),
+                FollowupAction("medical_history_form")
+            ]
+        else:
+            dispatcher.utter_message(text="I didn't understand which one you'd like to change. Please type '1' for chronic disease or '2' for smoking.")
+            return []

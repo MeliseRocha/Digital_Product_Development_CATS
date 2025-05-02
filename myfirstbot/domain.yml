@@ -4,62 +4,60 @@ intents:
   - greet
   - affirm
   - deny
-  - chronic_diseases
-  - smoking_frequency
+  - inform
+  - correct_data
 
 entities:
-  - chronic_diseases
-  - smoking_frequency
+  - chronic_disease
+  - smoking_info
 
 slots:
-  chronic_diseases:
+  chronic_disease:
     type: text
     mappings:
       - type: from_text
         conditions:
           - active_loop: medical_history_form
-            requested_slot: chronic_diseases
+            requested_slot: chronic_disease
 
-  smoking:
-    type: bool
-    mappings:
-      - type: from_intent
-        intent: affirm
-        value: true
-      - type: from_intent
-        intent: deny
-        value: false
-
-  smoking_frequency:
+  smoking_info:
     type: text
     mappings:
       - type: from_text
         conditions:
           - active_loop: medical_history_form
-            requested_slot: smoking_frequency
-
-responses:
-  utter_greet:
-    - text: "Hello! I will help you build your medical history."
-
-  utter_ask_chronic_diseases:
-    - text: "Do you have any chronic diseases? If yes, list them."
-
-  utter_ask_smoking:
-    - text: "Do you smoke?"
-
-  utter_ask_smoking_frequency:
-    - text: "How frequently do you smoke?"
-
-  utter_goodbye:
-    - text: "Goodbye!"
+            requested_slot: smoking_info
 
 forms:
   medical_history_form:
     required_slots:
-      - chronic_diseases
-      - smoking
-      - smoking_frequency
+      - chronic_disease
+      - smoking_info
+
+responses:
+  utter_intro:
+    - text: |
+        Hello, I am here to help you do your medical history. If you type something wrong you will have a chance to fix it at the end.
+
+  utter_ask_chronic_disease:
+    - text: "1) Do you have any chronic disease?"
+
+  utter_ask_smoking_info:
+    - text: "2) Do you smoke? If yes, how many cigarettes a day?"
+
+  utter_summary:
+    - text: |
+        Here's what I've collected:
+        Chronic Disease: {chronic_disease}
+        Smoking Info: {smoking_info}
+        Do you want to change anything? (yes/no)
+
+  utter_goodbye:
+    - text: "Thank you! Your medical history has been recorded."
+
+  utter_ask_which_to_change:
+    - text: "Which one do you want to change? Type 1 for 'chronic disease' or 2 for 'smoking'?"
 
 actions:
-  - validate_medical_history_form
+  - action_summary
+  - action_correct_slot
