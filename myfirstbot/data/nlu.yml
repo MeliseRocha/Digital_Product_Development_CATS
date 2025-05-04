@@ -13,6 +13,13 @@ nlu:
     - sure
     - correct
     - that's right
+    - I would like to
+    - I would like 
+    - Looks good
+    - Not really
+    - Please
+    - y
+    
 
 - intent: deny
   examples: |
@@ -20,6 +27,10 @@ nlu:
     - nope
     - wrong
     - not really
+    - I would not like
+    - Not necessary
+    - Not
+    - n
 
 - intent: correct_data
   examples: |
