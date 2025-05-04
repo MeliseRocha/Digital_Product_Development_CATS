@@ -40,5 +40,12 @@
 #  username: username
 #  password: password
 #  queue: queue
+
 action_endpoint:
   url: "http://localhost:5055/webhook"
+  headers:
+    Content-Type: application/json
+  cors:
+    - "http://localhost:3000"
+
+

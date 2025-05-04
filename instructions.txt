@@ -1,0 +1,12 @@
+1) Front end 
+
+cd Rasa 
+npm install
+npm start
+
+2) bot 
+
+open a terminal type 
+rasa run actions --cors "*"
+open another terminal type
+rasa run --enable-api --cors "*"
