@@ -1,40 +1,34 @@
 version: "3.1"
 
 rules:
-  - rule: Start medical history form
-    steps:
-      - intent: greet
-      - action: utter_greet
-      - action: medical_history_form
-      - active_loop: medical_history_form
 
-  - rule: Ask for chronic diseases
-    steps:
-      - active_loop: medical_history_form
-      - action: utter_ask_chronic_diseases
-      - slot_was_set:
-          - chronic_diseases: null
+- rule: Start form on greeting
+  steps:
+    - intent: greet
+    - action: utter_intro
+    - action: medical_history_form
+    - active_loop: medical_history_form
 
-  - rule: Ask about smoking
-    steps:
-      - active_loop: medical_history_form
-      - action: utter_ask_smoking
-      - slot_was_set:
-          - smoking: true
-      - action: utter_ask_smoking_frequency
+- rule: Submit medical form and summarize
+  condition:
+    - active_loop: medical_history_form
+  steps:
+    - action: medical_history_form
+    - active_loop: null
+    - action: action_summary
 
-  - rule: Skip smoking question if no smoking
-    steps:
-      - active_loop: medical_history_form
-      - action: utter_ask_smoking
-      - slot_was_set:
-          - smoking: false
-      - action: utter_ask_smoking_frequency
+- rule: Ask if user wants to change data
+  steps:
+    - intent: affirm
+    - action: utter_ask_which_to_change
 
-  - rule: Submit medical history form
-    condition:
-      - active_loop: medical_history_form
-    steps:
-      - action: medical_history_form
-      - active_loop: null
-      - action: utter_goodbye
+- rule: Handle correction choice
+  steps:
+    - intent: inform
+    - action: action_correct_slot
+
+
+- rule: Finish if no corrections
+  steps:
+    - intent: deny
+    - action: utter_goodbye

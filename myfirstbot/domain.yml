@@ -4,62 +4,233 @@ intents:
   - greet
   - affirm
   - deny
-  - chronic_diseases
-  - smoking_frequency
+  - inform
+  - correct_data
 
 entities:
-  - chronic_diseases
-  - smoking_frequency
+  - chronic_disease
+  - smoking_info
+  - medicine_info
+  - hospital_info
+  - allergies_info
+  - hereditary_disease
+  - alcohol_info
+  - drug_use
+  - sleep_diet
+  - pregnancy_history
+  - recent_exams
+  - imaging_lab_access
+  - recent_hospitalization
+
 
 slots:
-  chronic_diseases:
+  chronic_disease:
     type: text
     mappings:
       - type: from_text
         conditions:
           - active_loop: medical_history_form
-            requested_slot: chronic_diseases
+            requested_slot: chronic_disease
 
-  smoking:
-    type: bool
-    mappings:
-      - type: from_intent
-        intent: affirm
-        value: true
-      - type: from_intent
-        intent: deny
-        value: false
-
-  smoking_frequency:
+  smoking_info:
     type: text
     mappings:
       - type: from_text
         conditions:
           - active_loop: medical_history_form
-            requested_slot: smoking_frequency
+            requested_slot: smoking_info
 
-responses:
-  utter_greet:
-    - text: "Hello! I will help you build your medical history."
+  medicine_info:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: medicine_info
+        
+  hospital_info:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: hospital_info
 
-  utter_ask_chronic_diseases:
-    - text: "Do you have any chronic diseases? If yes, list them."
+        
+  allergies_info:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: allergies_info
 
-  utter_ask_smoking:
-    - text: "Do you smoke?"
+  hereditary_disease:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: hereditary_disease
 
-  utter_ask_smoking_frequency:
-    - text: "How frequently do you smoke?"
+  alcohol_info:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: alcohol_info
 
-  utter_goodbye:
-    - text: "Goodbye!"
+  drug_use:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: drug_use
+
+  sleep_diet:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: sleep_diet
+
+  pregnancy_history:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: pregnancy_history
+
+  recent_exams:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: recent_exams
+
+  imaging_lab_access:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: imaging_lab_access
+
+  recent_hospitalization:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: recent_hospitalization
+
 
 forms:
   medical_history_form:
     required_slots:
-      - chronic_diseases
-      - smoking
-      - smoking_frequency
+      - chronic_disease
+      - smoking_info
+      - medicine_info
+      - hospital_info
+      - allergies_info
+      - hereditary_disease
+      - alcohol_info
+      - drug_use
+      - sleep_diet
+      - pregnancy_history
+      - recent_exams
+      - imaging_lab_access
+      - recent_hospitalization
+
+responses:
+  utter_intro:
+    - text: |
+        Hello, I am here to help you do your medical history. If you type something wrong you will have a chance to fix it at the end.
+
+  utter_ask_chronic_disease:
+    - text: "1) Do you have any chronic disease?"
+
+  utter_ask_smoking_info:
+    - text: "2) Do you smoke? If yes, how many cigarettes a day?"
+
+  utter_ask_medicine_info:
+    - text: "3) Do you use any continuous-use medication? If yes, list which one(s), the dosage and for what purpose?"
+
+  utter_ask_hospital_info:
+    - text: "4) Have you ever been hospitalized or had surgery? When and for what reason?"
+
+  utter_ask_allergies_info:
+    - text: "5) Do you have any allergies to medications, foods, or other substances?"
+
+  utter_ask_hereditary_disease:
+    - text: "6) Does anyone in your family have any serious or hereditary diseases? (e.g., cancer, heart disease)"
+
+  utter_ask_alcohol_info:
+    - text: "7) Do you drink alchol? If yes, how often?"
+
+  utter_ask_drug_use:
+    - text: "8) Have you used any other drugs? (e.g., marijuana, cocaine, crack)"
+
+  utter_ask_sleep_diet:
+    - text: "9) How are your eating habits and sleep? Do you sleep well?"
+
+  utter_ask_pregnancy_history:
+    - text: "10) (If female) Have you ever been pregnant? How were the pregnancies and deliveries?"
+
+  utter_ask_recent_exams:
+    - text: "11) Please upload scanned or readable photos of your most recent test results. If you had imaging exams (like CT scan, MRI, ultrasound, etc.), include that information too."
+
+  utter_ask_imaging_lab_access:
+    - text: "12) What are the login credentials and the website of the lab where you had your imaging exams? (So the doctor can view the images.)"
+
+  utter_ask_recent_hospitalization:
+    - text: "13) Have you been hospitalized recently? If so, please upload the hospital discharge summary (photo or PDF)."
+
+  utter_summary:
+    - text: |
+        Here's what I've collected:
+        Chronic Disease: {chronic_disease}
+        Smoking Info: {smoking_info}
+        Medicine Info: {medicine_info}
+        Hospital Info: {hospital_info}
+        Allergies Info: {allergies_info}
+        Hereditary Disease: {hereditary_disease}
+        Alcohol Info: {alcohol_info}
+        Drug Use: {drug_use}
+        Sleep and Diet: {sleep_diet}
+        Pregnancy History: {pregnancy_history}
+        Recent Exams: {recent_exams}
+        Imaging Lab Access: {imaging_lab_access}
+        Recent Hospitalization: {recent_hospitalization}
+
+        Do you want to change anything? (yes/no)
+
+
+  utter_goodbye:
+    - text: "Thank you! Your medical history has been recorded."
+
+  utter_ask_which_to_change:
+  - text: |
+      Which one do you want to change? Type the number:
+      1 - Chronic Disease
+      2 - Smoking
+      3 - Medicine Info
+      4 - Hospital Info
+      5 - Allergies
+      6 - Hospitalization
+      7 - Alcohol Info
+      8 - Drug Use
+      9 - Sleep and Diet
+      10 - Pregnancy History
+      11 - Recent Exams
+      12 - Imaging Lab Access
+      13 - Recent Hospitalization Summary
 
 actions:
-  - validate_medical_history_form
+  - action_summary
+  - action_correct_slot
