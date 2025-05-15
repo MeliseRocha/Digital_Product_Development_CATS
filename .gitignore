@@ -37,7 +37,7 @@ instance/
 *.pyc
 
 # Rasa-specific files
-models/            
+         
 results/          
 .rasa/             
 *.md               
