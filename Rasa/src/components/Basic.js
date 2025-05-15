@@ -55,22 +55,24 @@ function Basic(){
             credentials: "same-origin",
             body: JSON.stringify({ "sender": name, "message": msg }),
         })
-        .then(response => response.json())
-        .then((response) => {
-            if(response){
-                const temp = response[0];
-                const recipient_id = temp["recipient_id"];
-                const recipient_msg = temp["text"];        
-
-
-                const response_temp = {sender: "bot",recipient_id : recipient_id,msg: recipient_msg};
+        .then(async (response) => {
+            const data = await response.json(); // ✅ Now this is your actual JSON array
+            if (data && data.length > 0 && data[0].text) {
+                const temp = data[0];
+                const recipient_id = temp["recipient_id"] || "bot";
+                const recipient_msg = temp["text"];
+        
+                const response_temp = { sender: "bot", recipient_id, msg: recipient_msg };
                 setbotTyping(false);
-                
                 setChat(chat => [...chat, response_temp]);
-               // scrollBottom();
-
+            } else {
+                console.warn("No valid response from Rasa:", data);
+                setbotTyping(false);
+                setChat(chat => [...chat, { sender: "bot", recipient_id: "bot", msg: "I'm sorry, I didn't understand that." }]);
             }
-        }) 
+        })
+        
+        
     }
 
     console.log(chat);

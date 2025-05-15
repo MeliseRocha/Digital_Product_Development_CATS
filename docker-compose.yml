@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  rasa:
+    image: rasa/rasa:latest
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./chatbot:/app
+      - ./chatbot/.rasa:/app/.rasa
+      - ./chatbot/models:/app/models
+    command: "run --enable-api --cors *"
+    user: "${UID}:${GID}"
+
+  action_server:
+    image: rasa/rasa-sdk:latest
+    ports:
+      - "5055:5055"
+    volumes:
+      - ./chatbot/actions:/app/actions
+    command: "start --actions actions"
+    user: "${UID}:${GID}"
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./chatbot/frontend:/usr/share/nginx/html:ro
+
