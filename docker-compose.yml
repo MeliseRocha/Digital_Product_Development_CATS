@@ -26,5 +26,5 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./chatbot/frontend:/usr/share/nginx/html:ro
+      - ./frontend:/usr/share/nginx/html:ro
 
