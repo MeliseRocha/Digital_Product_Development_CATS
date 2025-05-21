@@ -3,8 +3,17 @@ from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
 from rasa_sdk.events import SlotSet, ActiveLoop, FollowupAction
+import psycopg2
+
+from dotenv import load_dotenv
+import os
+
+load_dotenv(dotenv_path="./database.env") 
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 
+def get_connection():
+    return psycopg2.connect(DATABASE_URL)
 
 class ActionSummary(Action):
     def name(self) -> Text:
@@ -90,7 +99,7 @@ class ActionSavePatientData(Action):
         return []
 
     def save_to_database(self, patient_id: str, data: Dict[str, Any]):
-        conn = sqlite3.connect("/home/melise/Digital_Product_Development_CATS/chatbot/patients.db")
+        conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute('''
@@ -113,12 +122,26 @@ class ActionSavePatientData(Action):
         ''')
 
         cursor.execute('''
-            INSERT OR REPLACE INTO medical_history (
+            INSERT INTO medical_history (
                 patient_id, chronic_disease, smoking_info, medicine_info, hospital_info,
                 allergies_info, hereditary_disease, alcohol_info, drug_use,
                 sleep_diet, pregnancy_history, recent_exams,
                 imaging_lab_access, recent_hospitalization
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (patient_id) DO UPDATE SET
+                chronic_disease = EXCLUDED.chronic_disease,
+                smoking_info = EXCLUDED.smoking_info,
+                medicine_info = EXCLUDED.medicine_info,
+                hospital_info = EXCLUDED.hospital_info,
+                allergies_info = EXCLUDED.allergies_info,
+                hereditary_disease = EXCLUDED.hereditary_disease,
+                alcohol_info = EXCLUDED.alcohol_info,
+                drug_use = EXCLUDED.drug_use,
+                sleep_diet = EXCLUDED.sleep_diet,
+                pregnancy_history = EXCLUDED.pregnancy_history,
+                recent_exams = EXCLUDED.recent_exams,
+                imaging_lab_access = EXCLUDED.imaging_lab_access,
+                recent_hospitalization = EXCLUDED.recent_hospitalization
         ''', (
             patient_id,
             data["chronic_disease"],
@@ -137,7 +160,9 @@ class ActionSavePatientData(Action):
         ))
 
         conn.commit()
+        cursor.close()
         conn.close()
+
 
 
 
@@ -197,17 +222,18 @@ class ActionCheckPatientData(Action):
         return "action_check_patient_data"
 
     def run(self, dispatcher, tracker, domain):
-        #patient_id = tracker.get_slot("patient_id")
+        patient_id = tracker.get_slot("patient_id")
 
         if not patient_id:
             dispatcher.utter_message(text="Please provide a valid patient ID.")
             return []
 
-        conn = sqlite3.connect("/home/melise/Digital_Product_Development_CATS/chatbot/patients.db")
+        conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM medical_history WHERE patient_id=?", (patient_id,))
+        cursor.execute("SELECT * FROM medical_history WHERE patient_id=%s", (patient_id,))
         result = cursor.fetchone()
+        cursor.close()
         conn.close()
 
         if result:

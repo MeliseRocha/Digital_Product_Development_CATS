@@ -20,6 +20,8 @@ services:
       - ./chatbot/actions:/app/actions
     command: "start --actions actions"
     user: "${UID}:${GID}"
+    env_file:
+      - ./chatbot/database.env
 
   web:
     image: nginx:alpine
