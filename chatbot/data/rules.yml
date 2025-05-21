@@ -2,12 +2,15 @@ version: "3.1"
 
 rules:
 
-- rule: Start form on greeting
+- rule: Ask for patient ID on greeting
   steps:
     - intent: greet
-    - action: utter_intro
-    - action: medical_history_form
-    - active_loop: medical_history_form
+    - action: utter_ask_patient_id
+
+- rule: Handle patient ID input
+  steps:
+    - intent: id
+    - action: action_check_patient_data
 
 - rule: Submit medical form and summarize
   condition:
@@ -27,8 +30,11 @@ rules:
     - intent: inform
     - action: action_correct_slot
 
-
 - rule: Finish if no corrections
+  condition:
+    - active_loop: null
   steps:
+    - action: action_summary
     - intent: deny
-    - action: utter_goodbye
+    - action: action_save_patient_data
+

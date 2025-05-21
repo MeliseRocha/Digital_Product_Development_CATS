@@ -1,6 +1,7 @@
 version: "3.1"
 
 intents:
+  - id
   - greet
   - affirm
   - deny
@@ -8,6 +9,7 @@ intents:
   - correct_data
 
 entities:
+  - patient_id
   - chronic_disease
   - smoking_info
   - medicine_info
@@ -24,6 +26,15 @@ entities:
 
 
 slots:
+
+  patient_id:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: patient_id
+
+
+
   chronic_disease:
     type: text
     mappings:
@@ -147,7 +158,11 @@ forms:
       - imaging_lab_access
       - recent_hospitalization
 
+
 responses:
+  utter_ask_patient_id:
+    - text: "Hello! Please enter your patient ID to begin."
+
   utter_intro:
     - text: |
         Hello, I am here to help you do your medical history. If you type something wrong you will have a chance to fix it at the end.
@@ -215,22 +230,25 @@ responses:
     - text: "Thank you! Your medical history has been recorded."
 
   utter_ask_which_to_change:
-  - text: |
-      Which one do you want to change? Type the number:
-      1 - Chronic Disease
-      2 - Smoking
-      3 - Medicine Info
-      4 - Hospital Info
-      5 - Allergies
-      6 - Hospitalization
-      7 - Alcohol Info
-      8 - Drug Use
-      9 - Sleep and Diet
-      10 - Pregnancy History
-      11 - Recent Exams
-      12 - Imaging Lab Access
-      13 - Recent Hospitalization Summary
+    - text: |
+        Which one do you want to change? Please type the exact field name from the list below:
+        - chronic_disease
+        - smoking_info
+        - medicine_info
+        - hospital_info
+        - allergies_info
+        - hereditary_disease
+        - alcohol_info
+        - drug_use
+        - sleep_diet
+        - pregnancy_history
+        - recent_exams
+        - imaging_lab_access
+        - recent_hospitalization
 
 actions:
   - action_summary
   - action_correct_slot
+  - action_check_patient_data
+  - action_save_patient_data
+
