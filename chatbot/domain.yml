@@ -251,4 +251,3 @@ actions:
   - action_correct_slot
   - action_check_patient_data
   - action_save_patient_data
-

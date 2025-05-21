@@ -23,7 +23,7 @@ rules:
 - rule: Ask if user wants to change data
   steps:
     - intent: affirm
-    - action: utter_ask_which_to_change
+    - action: action_correct_slot
 
 - rule: Handle correction choice
   steps:

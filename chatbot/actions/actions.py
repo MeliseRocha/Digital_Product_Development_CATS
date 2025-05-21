@@ -39,26 +39,34 @@ class ActionSummary(Action):
         lab_access = tracker.get_slot("imaging_lab_access")
         recent_hosp = tracker.get_slot("recent_hospitalization")
 
-        summary = (
-            f"Here's what I've collected:\n"
-            f"Chronic Disease: {chronic}\n"
-            f"Smoking Info: {smoking}\n"
-            f"Medicine Info: {medicine}\n"
-            f"Hospital Info: {hospital}\n"
-            f"Allergies Info: {allergies}\n"
-            f"Hereditary Diseases: {hereditary}\n"
-            f"Alcohol Info: {alcohol}\n"
-            f"Drug Use: {drug_use}\n"
-            f"Sleep and Diet: {sleep_diet}\n"
-            f"Pregnancy History: {pregnancy}\n"
-            f"Recent Exams: {exams}\n"
-            f"Imaging Lab Access: {lab_access}\n"
-            f"Recent Hospitalization Summary: {recent_hosp}\n\n"
-            f"Do you want to change anything? (yes/no)"
+        # Send each line as a separate message
+        dispatcher.utter_message(text="Here's what I've collected so far:")
+
+        dispatcher.utter_message(text=f"Chronic Disease: {chronic}")
+        dispatcher.utter_message(text=f"Smoking Info: {smoking}")
+        dispatcher.utter_message(text=f"Medicine Info: {medicine}")
+        dispatcher.utter_message(text=f"Hospital Info: {hospital}")
+        dispatcher.utter_message(text=f"Allergies Info: {allergies}")
+        dispatcher.utter_message(text=f"Hereditary Diseases: {hereditary}")
+        dispatcher.utter_message(text=f"Alcohol Info: {alcohol}")
+        dispatcher.utter_message(text=f"Drug Use: {drug_use}")
+        dispatcher.utter_message(text=f"Sleep and Diet: {sleep_diet}")
+        dispatcher.utter_message(text=f"Pregnancy History: {pregnancy}")
+        dispatcher.utter_message(text=f"Recent Exams: {exams}")
+        dispatcher.utter_message(text=f"Imaging Lab Access: {lab_access}")
+        dispatcher.utter_message(text=f"Recent Hospitalization Summary: {recent_hosp}")
+
+        # Then send the question with buttons
+        dispatcher.utter_message(
+            text="Do you want to change anything?",
+            buttons=[
+                {"title": "Yes", "payload": "/affirm"},
+                {"title": "No", "payload": "/deny"}
+            ]
         )
 
-        dispatcher.utter_message(text=summary)
         return [SlotSet("patient_id", patient_id)]
+
 
 
 import sqlite3
@@ -164,13 +172,19 @@ class ActionSavePatientData(Action):
         conn.close()
 
 
-
+from rasa_sdk import Action, Tracker
+from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk.events import SlotSet, ActiveLoop, FollowupAction
+from typing import Text, List, Dict, Any
 
 class ActionCorrectSlot(Action):
     def name(self) -> Text:
         return "action_correct_slot"
 
-    def run(self, dispatcher, tracker, domain):
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+
         last_user_msg = tracker.latest_message.get("text", "").strip().lower()
         slot_reset_map = {
             "chronic_disease": "chronic_disease",
@@ -196,23 +210,21 @@ class ActionCorrectSlot(Action):
                 FollowupAction("medical_history_form")
             ]
         else:
-            dispatcher.utter_message(text=(
-                "I didn't understand which one you'd like to change. Please type the exact field name from the list below:\n"
-                "- chronic_disease\n"
-                "- smoking_info\n"
-                "- medicine_info\n"
-                "- hospital_info\n"
-                "- allergies_info\n"
-                "- hereditary_disease\n"
-                "- alcohol_info\n"
-                "- drug_use\n"
-                "- sleep_diet\n"
-                "- pregnancy_history\n"
-                "- recent_exams\n"
-                "- imaging_lab_access\n"
-                "- recent_hospitalization"
-            ))
+            buttons = []
+            for slot_name in slot_reset_map.keys():
+                buttons.append(
+                    {
+                        "title": slot_name.replace("_", " ").capitalize(),
+                        "payload": slot_name
+                    }
+                )
+
+            dispatcher.utter_message(
+                text="Which field would you like to correct? Please choose one of the options below:",
+                buttons=buttons
+            )
             return []
+
 
 from rasa_sdk.events import SlotSet, FollowupAction
 import sqlite3  # or any DB you're using
