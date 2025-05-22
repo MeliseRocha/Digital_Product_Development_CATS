@@ -13,7 +13,8 @@ services:
     user: "${UID}:${GID}"
 
   action_server:
-    image: rasa/rasa-sdk:latest
+    build:
+      context: ./chatbot/actions
     ports:
       - "5055:5055"
     volumes:
@@ -29,4 +30,3 @@ services:
       - "8080:80"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
-
