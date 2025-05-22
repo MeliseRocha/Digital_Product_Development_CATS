@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   rasa:
     image: rasa/rasa:latest
@@ -6,14 +7,14 @@ services:
       - "5005:5005"
     volumes:
       - ./chatbot:/app
-    command: "run --cors *"
-    user: "${UID}:${GID}"  
-  
+    command: run --enable-api --cors "*"
+    user: "${UID}:${GID}"
+
   action_server:
     image: rasa/rasa-sdk:latest
     ports:
-      - "5055:5055" 
+      - "5055:5055"
     volumes:
       - ./chatbot/actions:/app/actions
-    command: "start --actions actions"  
-    user: "${UID}:${GID}"  
+    command: start --actions actions
+    user: "${UID}:${GID}"
