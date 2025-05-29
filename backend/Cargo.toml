@@ -1,0 +1,36 @@
+[package]
+name = "redcore"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+actix-web = "4.0"
+actix-web-actors = "4.1"
+actix-web-httpauth = "0.8.2"
+actix-web-lab = "0.18.0"
+argon2 = "0.5.3"
+console-subscriber  = "0.1"
+chrono = { version = "0.4", features = ["serde"] } 
+derive_more = { version = "1.0.0", features = ["full"] }
+dotenv = "0.15.0"
+flame = "0.2.2"
+flamegraph = "0.6.7"
+jsonwebtoken = "9.3.0"
+rand_core = "0.9.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sqlx = { version = "0.8.3", features = ["postgres", "runtime-tokio-native-tls", "chrono", "uuid"] }
+tokio = { version = "1.43.0", features = ["full", "tracing"] }
+tracing = "0.1.41"
+tracing-actix-web = "0.7.15"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+uuid = { version = "1.12.1", features = [
+    "v4",                # Lets you generate random UUIDs
+    "serde",
+    "fast-rng",          # Use a faster (but still sufficiently random) RNG
+    "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
+] }
+
+

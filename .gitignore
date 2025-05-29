@@ -1,0 +1,56 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+Rasa/node_modules/
+/.pnp
+.pnp.js
+
+#builds
+backend/target/
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+rasa-env/
+
+# Flask-specific
+instance/
+*.pyc
+
+# Rasa-specific files
+         
+results/          
+.rasa/             
+*.md               
+.nlu.json          
+# Environment/config files
+.env
+config.json
+
+# Cache and temporary files
+.DS_Store
+.pytest_cache/
+.mypy_cache/
+coverage/

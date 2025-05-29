@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="patient-section">
+        <div class="header">
+          <h2>Patient List</h2>
+          <button class="add-button" title="Add new appointment">+</button>
+        </div>
+        <input
+          type="text"
+          id="searchInput"
+          class="search-bar"
+          placeholder="Search patients..."
+        />
+        <ul id="patientList" class="patient-list"></ul>
+      </div>
+
+      <div class="details-section" id="patientInfo">
+        <p>Select a patient to see details.</p>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Add Patient</h3>
+        <form id="modalForm">
+          <input type="text" id="name" placeholder="Name" required />
+          <input type="number" id="age" placeholder="Age" required />
+          <select id="gender">
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+          </select>
+          <input type="text" id="medications" placeholder="Medications" />
+          <input type="text" id="smoke" placeholder="Smoke?" />
+          <input type="text" id="allergies" placeholder="Allergies" />
+          <input type="text" id="family" placeholder="Family History" />
+          <div class="modal-actions">
+            <button type="submit" class="save">Save</button>
+            <button type="button" id="cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="/js/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </body>
+</html>

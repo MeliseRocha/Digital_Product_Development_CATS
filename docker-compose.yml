@@ -1,0 +1,78 @@
+x-common-env: &common-env
+  POSTGRES_USER: red
+  POSTGRES_PASSWORD: red
+  POSTGRES_DB: red
+
+services:
+  rasa:
+    build: ./chatbot  # Build from your chatbot directory
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./chatbot/models:/app/models:rw
+    command: "run --enable-api --cors '*' --debug"
+    depends_on:
+      - action_server
+    networks:
+      - red_network
+
+  action_server:
+    build: ./chatbot  # Same build context as rasa service
+    ports:
+      - "5055:5055"
+    command: "run actions --cors '*'"
+    env_file:
+      - ./chatbot/database.env
+    networks:
+      - red_network
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    networks:
+      - red_network
+
+  db:
+    image: postgres:17.2-alpine3.21
+    container_name: red_db
+    environment:
+      <<: *common-env
+    volumes:
+      - ./red.sql:/docker-entrypoint-initdb.d/red.sql
+      - red_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - red_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U red"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    env_file:
+      - .env  # This will load your .env file
+    environment:
+      <<: *common-env
+    ports:
+      - "3000:8080"
+    networks:
+      - red_network
+    depends_on:
+      db:
+        condition: service_healthy
+
+networks:
+  red_network:
+    driver: bridge
+
+volumes:
+  red_data:
+    driver: local

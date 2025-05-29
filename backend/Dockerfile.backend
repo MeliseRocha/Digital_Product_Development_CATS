@@ -1,0 +1,34 @@
+# Use the official Rust image as the base
+FROM rust:latest
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the Cargo.toml and Cargo.lock files
+COPY Cargo.toml Cargo.lock ./
+
+# Create a dummy main.rs to build dependencies
+RUN mkdir -p src && echo "fn main() {}" > src/main.rs
+
+# Build dependencies to cache them
+RUN cargo build --release
+
+# Remove the dummy main.rs and copy the actual source code
+RUN rm -rf src
+COPY . .
+
+# this is needed because the code has to be compiled with the db
+# in offline mode, in the future that will not be necessary as the db
+# will not be located inside a container
+# the file was generated with the command 
+# cargo sqlx prepare --database-url postgresql://red:red@0.0.0.0:5432/red
+COPY .sqlx .sqlx
+
+# Build the application
+RUN cargo build --release
+
+# Expose port 8080
+EXPOSE 8080
+
+# Run the delay.sh script followed by the application
+CMD ["./target/release/redcore"]

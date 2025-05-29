@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            u.id AS user_id, \n            u.username AS sub, \n            u.roles AS roles,  \n            COALESCE(ARRAY_REMOVE(ARRAY_AGG(c.id), NULL), ARRAY[]::UUID[]) AS clinics_id\n        FROM users u\n        LEFT JOIN clinics c ON u.id = c.user_id\n        WHERE u.username = $1\n        GROUP BY u.id, u.username, u.roles;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sub",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "roles",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "clinics_id",
+        "type_info": "UuidArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "a819c43e1c54f709f0a0c878cc3fd82283ecb5ced5ebf1c894511b998e98117d"
+}

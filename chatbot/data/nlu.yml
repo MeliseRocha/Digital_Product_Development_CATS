@@ -1,0 +1,54 @@
+version: "3.1"
+
+
+
+nlu:
+- intent: id
+  examples: |
+    - My patient ID is [12](patient_id)
+    - It's [12345](patient_id)
+    - The ID is [A001](patient_id)
+
+
+- intent: greet
+  examples: |
+    - hello
+    - hey
+
+- intent: affirm
+  examples: |
+    - yes
+    - yeah
+    - sure
+    - correct
+    - that's right
+    - I would like to
+    - I would like 
+    - Looks good
+    - Not really
+    - Please
+    - y
+    
+
+- intent: deny
+  examples: |
+    - no
+    - nope
+    - wrong
+    - not really
+    - I would not like
+    - Not necessary
+    - Not
+    - n
+
+- intent: correct_data
+  examples: |
+    - change
+
+- intent: inform
+  examples: |
+    - I have asthma
+    - I don't have any
+    - I smoke 5 cigarettes a day
+    - I smoke occasionally
+    - None

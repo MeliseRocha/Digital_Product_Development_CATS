@@ -1,0 +1,5 @@
+- story: Patient denies changes, save data
+  steps:
+  - action: action_summary
+  - intent: deny
+  - action: action_save_patient_data
