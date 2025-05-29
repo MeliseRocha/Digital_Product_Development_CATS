@@ -1,26 +1,19 @@
-version: "3.8"
-
 services:
   rasa:
-    image: rasa/rasa:latest
+    build: ./chatbot  # Build from your chatbot directory
     ports:
       - "5005:5005"
     volumes:
-      - ./chatbot:/app
-      - ./chatbot/.rasa:/app/.rasa
-      - ./chatbot/models:/app/models
-    command: "run --enable-api --cors *"
-    user: "${UID}:${GID}"
+      - ./chatbot/models:/app/models:rw
+    command: "run --enable-api --cors '*' --debug"
+    depends_on:
+      - action_server
 
   action_server:
-    build:
-      context: ./chatbot/actions
+    build: ./chatbot  # Same build context as rasa service
     ports:
       - "5055:5055"
-    volumes:
-      - ./chatbot/actions:/app/actions
-    command: "start --actions actions"
-    user: "${UID}:${GID}"
+    command: "run actions --cors '*'"
     env_file:
       - ./chatbot/database.env
 
