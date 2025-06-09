@@ -7,13 +7,21 @@ import psycopg2
 
 from dotenv import load_dotenv
 import os
-
+import requests
+from typing import Dict, Any
 load_dotenv(dotenv_path="./database.env") 
-DATABASE_URL = os.getenv("DATABASE_URL")
+
+DB_NAME = os.getenv("DB_NAME")  
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
 
 
-def get_connection():
-    return psycopg2.connect(DATABASE_URL)
+
+
+#def get_connection():
+    #return psycopg2.connect(DATABASE_URL)
 
 class ActionSummary(Action):
     def name(self) -> Text:
@@ -105,71 +113,33 @@ class ActionSavePatientData(Action):
         self.save_to_database(patient_id, data)
         dispatcher.utter_message("Your medical history has been saved.")
         return []
-
     def save_to_database(self, patient_id: str, data: Dict[str, Any]):
-        conn = get_connection()
-        cursor = conn.cursor()
+        # TODO add the token in the pot requests
+        url = f"https://redcore-latest.onrender.com/patients/{patient_id}/pre-anamnesis"
 
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS medical_history (
-                patient_id TEXT PRIMARY KEY,
-                chronic_disease TEXT,
-                smoking_info TEXT,
-                medicine_info TEXT,
-                hospital_info TEXT,
-                allergies_info TEXT,
-                hereditary_disease TEXT,
-                alcohol_info TEXT,
-                drug_use TEXT,
-                sleep_diet TEXT,
-                pregnancy_history TEXT,
-                recent_exams TEXT,
-                imaging_lab_access TEXT,
-                recent_hospitalization TEXT
-            )
-        ''')
+        payload = {
+            "chronic_disease": data.get("chronic_disease"),
+            "smoking": data.get("smoking"),
+            "medicines": data.get("medicines"),
+            "allergies": data.get("allergies"),
+            "existing_illness": data.get("existing_illness"),
+            "alcohol_drug_use": data.get("alcohol_drug_use"),
+            "sleep_diet": data.get("sleep_diet"),
+            "pregnancy_history": data.get("pregnancy_history"),
+            "recent_exams": data.get("recent_exams"), 
+            "recent_hospitalization": data.get("recent_hospitalization")
+        }
 
-        cursor.execute('''
-            INSERT INTO medical_history (
-                patient_id, chronic_disease, smoking_info, medicine_info, hospital_info,
-                allergies_info, hereditary_disease, alcohol_info, drug_use,
-                sleep_diet, pregnancy_history, recent_exams,
-                imaging_lab_access, recent_hospitalization
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (patient_id) DO UPDATE SET
-                chronic_disease = EXCLUDED.chronic_disease,
-                smoking_info = EXCLUDED.smoking_info,
-                medicine_info = EXCLUDED.medicine_info,
-                hospital_info = EXCLUDED.hospital_info,
-                allergies_info = EXCLUDED.allergies_info,
-                hereditary_disease = EXCLUDED.hereditary_disease,
-                alcohol_info = EXCLUDED.alcohol_info,
-                drug_use = EXCLUDED.drug_use,
-                sleep_diet = EXCLUDED.sleep_diet,
-                pregnancy_history = EXCLUDED.pregnancy_history,
-                recent_exams = EXCLUDED.recent_exams,
-                imaging_lab_access = EXCLUDED.imaging_lab_access,
-                recent_hospitalization = EXCLUDED.recent_hospitalization
-        ''', (
-            patient_id,
-            data["chronic_disease"],
-            data["smoking_info"],
-            data["medicine_info"],
-            data["hospital_info"],
-            data["allergies_info"],
-            data["hereditary_disease"],
-            data["alcohol_info"],
-            data["drug_use"],
-            data["sleep_diet"],
-            data["pregnancy_history"],
-            data["recent_exams"],
-            data["imaging_lab_access"],
-            data["recent_hospitalization"]
-        ))
+        try:
+            response = requests.post(url, json=payload)
 
-        conn.commit()
-        cursor.close()
-        conn.close()
+            if response.status_code == 200 or response.status_code == 201:
+                print("Data successfully sent to API.")
+            else:
+                print(f"Failed to send data. Status code: {response.status_code}, Response: {response.text}")
+
+        except requests.RequestException as e:
+            print(f"Error during POST request: {e}")
 
 
 from rasa_sdk import Action, Tracker
@@ -226,6 +196,7 @@ class ActionCorrectSlot(Action):
             return []
 
 
+
 from rasa_sdk.events import SlotSet, FollowupAction
 import sqlite3  # or any DB you're using
 
@@ -240,27 +211,43 @@ class ActionCheckPatientData(Action):
             dispatcher.utter_message(text="Please provide a valid patient ID.")
             return []
 
-        conn = get_connection()
-        cursor = conn.cursor()
+        url = f"https://redcore-latest.onrender.com/patients/{patient_id}/pre-anamnesis"
 
-        cursor.execute("SELECT * FROM medical_history WHERE patient_id=%s", (patient_id,))
-        result = cursor.fetchone()
-        cursor.close()
-        conn.close()
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                data = response.json()
 
-        if result:
-            slot_names = [
-                "chronic_disease", "smoking_info", "medicine_info", "hospital_info",
-                "allergies_info", "hereditary_disease", "alcohol_info", "drug_use",
-                "sleep_diet", "pregnancy_history", "recent_exams",
-                "imaging_lab_access", "recent_hospitalization"
-            ]
+                if not data:
+                    dispatcher.utter_message(text="No existing record found. Let's fill out the medical history.")
+                    return [SlotSet("patient_id", patient_id), FollowupAction("medical_history_form")]
 
-            slot_sets = [SlotSet(name, value) for name, value in zip(slot_names, result[1:])]  # skip patient_id
-            slot_sets.append(SlotSet("patient_id", patient_id))  # ensure patient_id is always set
+                # Map the JSON keys to your slot names
+                slot_mapping = {
+                    "chronic_disease": data.get("chronic_disease"),
+                    "smoking_info": data.get("smoking"),
+                    "medicine_info": data.get("medicines"),
+                    "allergies_info": data.get("allergies"),
+                    "hereditary_disease": data.get("existing_illness"),
+                    "alcohol_info": data.get("alcohol_drug_use"),
+                    "sleep_diet": data.get("sleep_diet"),
+                    "pregnancy_history": data.get("pregnancy_history"),
+                    "recent_exams": data.get("recent_exams"),
+                    # TODO add imaging lab access to database
+                    "imaging_lab_access": None,
+                    "recent_hospitalization": data.get("recent_hospitalization"),
+                }
 
-            dispatcher.utter_message(text="I found your existing medical history.")
-            return slot_sets + [FollowupAction("action_summary")]
-        else:
-            dispatcher.utter_message(text="No existing record found. Let's fill out the medical history.")
-            return [SlotSet("patient_id", patient_id), FollowupAction("medical_history_form")]
+                slot_sets = [SlotSet(key, value) for key, value in slot_mapping.items()]
+                slot_sets.append(SlotSet("patient_id", patient_id))
+
+                dispatcher.utter_message(text="I found your existing medical history.")
+                return slot_sets + [FollowupAction("action_summary")]
+
+            else:
+                dispatcher.utter_message(text="No existing record found. Let's fill out the medical history.")
+                return [SlotSet("patient_id", patient_id), FollowupAction("medical_history_form")]
+
+        except requests.RequestException as e:
+            dispatcher.utter_message(text="Sorry, there was an error accessing your medical history. Please try again later.")
+            return []

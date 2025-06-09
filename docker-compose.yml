@@ -35,40 +35,6 @@ services:
     networks:
       - red_network
 
-  db:
-    image: postgres:17.2-alpine3.21
-    container_name: red_db
-    environment:
-      <<: *common-env
-    volumes:
-      - ./red.sql:/docker-entrypoint-initdb.d/red.sql
-      - red_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    networks:
-      - red_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U red"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile.backend
-    env_file:
-      - .env  # This will load your .env file
-    environment:
-      <<: *common-env
-    ports:
-      - "3000:8080"
-    networks:
-      - red_network
-    depends_on:
-      db:
-        condition: service_healthy
-
 networks:
   red_network:
     driver: bridge
