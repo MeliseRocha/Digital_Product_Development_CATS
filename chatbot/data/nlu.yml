@@ -52,3 +52,6 @@ nlu:
     - I smoke 5 cigarettes a day
     - I smoke occasionally
     - None
+    - {"smoking_info": "yes"}
+    - {"smoking_years": "1-5 years"}
+    - {"smoking_frequency": "6-10 per day"}

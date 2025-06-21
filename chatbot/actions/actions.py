@@ -9,19 +9,7 @@ from dotenv import load_dotenv
 import os
 import requests
 from typing import Dict, Any
-load_dotenv(dotenv_path="./database.env") 
 
-DB_NAME = os.getenv("DB_NAME")  
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-
-
-
-
-#def get_connection():
-    #return psycopg2.connect(DATABASE_URL)
 
 class ActionSummary(Action):
     def name(self) -> Text:
@@ -251,3 +239,158 @@ class ActionCheckPatientData(Action):
         except requests.RequestException as e:
             dispatcher.utter_message(text="Sorry, there was an error accessing your medical history. Please try again later.")
             return []
+from typing import Dict, Text, Any, List, Optional
+from rasa_sdk import Action, Tracker
+from rasa_sdk.executor import CollectingDispatcher
+from rasa_sdk.forms import FormValidationAction
+from rasa_sdk.types import DomainDict
+
+class ValidateMedicalHistoryForm(FormValidationAction):
+    def name(self) -> Text:
+        return "validate_medical_history_form"
+
+    async def validate_smoking_info(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate smoking_info value."""
+        
+        # Handle both button payloads and direct text input
+        if slot_value in ["yes", "no", "used to"] or tracker.latest_message.get('intent', {}).get('name') in ['affirm', 'deny']:
+            # Map intent to text values
+            if tracker.latest_message.get('intent', {}).get('name') == 'deny':
+                actual_value = "No"
+            elif tracker.latest_message.get('intent', {}).get('name') == 'affirm':
+                # Check if it's "Yes" or "Used to" based on button title or entity
+                latest_text = tracker.latest_message.get('text', '').lower()
+                if 'used to' in latest_text:
+                    actual_value = "Used to"
+                else:
+                    actual_value = "Yes"
+            else:
+                # Direct text input
+                actual_value = slot_value.title() if slot_value else "No"
+            
+            # If user doesn't smoke, set combined smoking info and skip other questions
+            if actual_value == "No":
+                return {
+                    "smoking_info": "No",
+                    "smoking_duration": "N/A",
+                    "smoking_frequency": "N/A"
+                }
+            else:
+                # Store the smoking status for later combination
+                return {"smoking_info": actual_value}
+        else:
+            dispatcher.utter_message(text="Please select Yes, Used to, or No.")
+            return {"smoking_info": None}
+
+    async def validate_smoking_duration(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate smoking_duration value."""
+        
+        # Skip if already set to N/A (user doesn't smoke)
+        if slot_value == "N/A":
+            return {"smoking_duration": slot_value}
+            
+        valid_durations = ["1", "2", "3", "4", "5"]
+        if slot_value in valid_durations:
+            return {"smoking_duration": slot_value}
+        else:
+            dispatcher.utter_message(text="Please select a valid option (1-5 years).")
+            return {"smoking_duration": None}
+
+    async def validate_smoking_frequency(
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate smoking_frequency value and create combined smoking_info."""
+        
+        # Skip if already set to N/A (user doesn't smoke)
+        if slot_value == "N/A":
+            return {"smoking_frequency": slot_value}
+            
+        valid_frequencies = ["1", "2", "3", "4", "5"]
+        if slot_value in valid_frequencies:
+            # Get the smoking duration that was already collected
+            # Fixed the typo: smoking_infp -> smoking_info
+            smoking_status = tracker.get_slot("smoking_info")
+            smoking_duration = tracker.get_slot("smoking_duration")
+            
+            # Create combined smoking info based on smoking status
+            if smoking_status == "Used to":
+                combined_smoking_info = f"{smoking_status} / {smoking_duration} years / {slot_value} cigarettes per day"
+            else:
+                combined_smoking_info = f"{smoking_status} / {smoking_duration} years / {slot_value} cigarettes per day"
+            
+            return {
+                "smoking_frequency": slot_value,
+                "smoking_info": combined_smoking_info
+            }
+        else:
+            dispatcher.utter_message(text="Please select a valid option (1-5 cigarettes).")
+            return {"smoking_frequency": None}
+
+    async def next_slot_to_request(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Optional[Text]:
+        """Determine the next slot to request based on conditional logic."""
+        
+        # Get the standard next slot
+        next_slot = await super().next_slot_to_request(dispatcher, tracker, domain)
+        
+        # If the next slot is smoking_duration or smoking_frequency 
+        # but user doesn't smoke, skip to medicine_info
+        smoking_info = tracker.get_slot("smoking_info")
+        if smoking_info == "No" and next_slot in ["smoking_duration", "smoking_frequency"]:
+            # Find the next slot after smoking questions
+            required_slots = await self.required_slots(
+                domain.get("slots", {}), dispatcher, tracker, domain
+            )
+            try:
+                medicine_index = required_slots.index("medicine_info")
+                return required_slots[medicine_index]
+            except (ValueError, IndexError):
+                return None
+                
+        return next_slot
+
+    async def required_slots(
+        self,
+        domain_slots: List[Text],
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> List[Text]:
+        """Return required slots."""
+        return [
+            "chronic_disease",
+            "smoking_info", 
+            "smoking_duration",
+            "smoking_frequency",
+            "medicine_info",
+            "hospital_info",
+            "allergies_info", 
+            "hereditary_disease",
+            "alcohol_info",
+            "drug_use",
+            "sleep_diet",
+            "pregnancy_history",
+            "recent_exams",
+            "imaging_lab_access",
+            "recent_hospitalization"
+        ]

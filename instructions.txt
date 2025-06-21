@@ -14,36 +14,4 @@ rasa run --enable-api --cors "*"
 3 database
 psql postgresql://database_6e4a_user:be1yAtEW3Tn0tUzRKJmgJ4CRkOe4D7Gf@dpg-d0mq4a56ubrc73elc9l0-a.frankfurt-postgres.render.com/database_6e4a
 auth bearer 
-  utter_ask_smoking_status:
-  - text: "2) Do you smoke?"
-    buttons:
-      - title: "Yes"
-        payload: '/inform{"smoking_status": "Yes"}'
-      - title: "No"
-        payload: '/inform{"smoking_status": "No"}'
-      - title: "Used to"
-        payload: '/inform{"smoking_status": "Used to"}'
-
-  utter_ask_smoking_years:
-    - text: "For how long have you smoked?"
-      buttons:
-        - title: "1 year"
-          payload: "/inform{\"smoking_years\": \"1\"}"
-        - title: "2 years"
-          payload: "/inform{\"smoking_years\": \"2\"}"
-        - title: "3 years"
-          payload: "/inform{\"smoking_years\": \"3\"}"
-        - title: "4 years"
-          payload: "/inform{\"smoking_years\": \"4\"}"
-        - title: "5+ years"
-          payload: "/inform{\"smoking_years\": \"5+\"}"
-
-  utter_ask_smoking_frequency:
-    - text: "How often do you smoke?"
-      buttons:
-        - title: "Daily"
-          payload: "/inform{\"smoking_frequency\": \"Daily\"}"
-        - title: "Weekly"
-          payload: "/inform{\"smoking_frequency\": \"Weekly\"}"
-        - title: "Occasionally"
-          payload: "/inform{\"smoking_frequency\": \"Occasionally\"}"
+ 

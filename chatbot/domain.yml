@@ -7,6 +7,7 @@ intents:
   - deny
   - inform
   - correct_data
+  - used_to_smoke
 
 entities:
   - patient_id
@@ -24,16 +25,12 @@ entities:
   - imaging_lab_access
   - recent_hospitalization
 
-
 slots:
-
   patient_id:
     type: text
     mappings:
       - type: from_entity
         entity: patient_id
-
-
 
   chronic_disease:
     type: text
@@ -46,10 +43,34 @@ slots:
   smoking_info:
     type: text
     mappings:
-      - type: from_text
+      - type: from_intent
+        intent: affirm
+        value: "yes"
         conditions:
           - active_loop: medical_history_form
             requested_slot: smoking_info
+      - type: from_intent
+        intent: deny
+        value: "no"
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: smoking_info
+
+  smoking_duration:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: smoking_duration
+
+  smoking_frequency:
+    type: text
+    mappings:
+      - type: from_text
+        conditions:
+          - active_loop: medical_history_form
+            requested_slot: smoking_frequency
 
   medicine_info:
     type: text
@@ -66,7 +87,6 @@ slots:
         conditions:
           - active_loop: medical_history_form
             requested_slot: hospital_info
-
         
   allergies_info:
     type: text
@@ -140,12 +160,13 @@ slots:
           - active_loop: medical_history_form
             requested_slot: recent_hospitalization
 
-
 forms:
   medical_history_form:
     required_slots:
       - chronic_disease
       - smoking_info
+      - smoking_duration
+      - smoking_frequency
       - medicine_info
       - hospital_info
       - allergies_info
@@ -157,7 +178,6 @@ forms:
       - recent_exams
       - imaging_lab_access
       - recent_hospitalization
-
 
 responses:
   utter_ask_patient_id:
@@ -171,7 +191,42 @@ responses:
     - text: "1) Do you have any chronic disease?"
 
   utter_ask_smoking_info:
-    - text: "2) Do you smoke? If yes, how many cigarettes a day?"
+    - text: "2) Do you smoke?"
+      buttons:
+        - title: "Yes"
+          payload: "Yes"
+        - title: "Used to"
+          payload: "Used to"
+        - title: "No"
+          payload: "No"
+
+  utter_ask_smoking_duration:
+    - text: "How many years have you been smoking?"
+      buttons:
+        - title: "1"
+          payload: "1"
+        - title: "2"
+          payload: "2"
+        - title: "3"
+          payload: "3"
+        - title: "4"
+          payload: "4"
+        - title: "5"
+          payload: "5"
+
+  utter_ask_smoking_frequency:
+    - text: "How many cigarettes per day?"
+      buttons:
+        - title: "1"
+          payload: "1"
+        - title: "2"
+          payload: "2"
+        - title: "3"
+          payload: "3"
+        - title: "4"
+          payload: "4"
+        - title: "5"
+          payload: "5"
 
   utter_ask_medicine_info:
     - text: "3) Do you use any continuous-use medication? If yes, list which one(s), the dosage and for what purpose?"
@@ -186,7 +241,7 @@ responses:
     - text: "6) Does anyone in your family have any serious or hereditary diseases? (e.g., cancer, heart disease)"
 
   utter_ask_alcohol_info:
-    - text: "7) Do you drink alchol? If yes, how often?"
+    - text: "7) Do you drink alcohol? If yes, how often?"
 
   utter_ask_drug_use:
     - text: "8) Have you used any other drugs? (e.g., marijuana, cocaine, crack)"
@@ -210,7 +265,7 @@ responses:
     - text: |
         Here's what I've collected:
         Chronic Disease: {chronic_disease}
-        Smoking Info: {smoking_info}
+        Smoking: {smoking_info}
         Medicine Info: {medicine_info}
         Hospital Info: {hospital_info}
         Allergies Info: {allergies_info}
@@ -224,7 +279,6 @@ responses:
         Recent Hospitalization: {recent_hospitalization}
 
         Do you want to change anything? (yes/no)
-
 
   utter_goodbye:
     - text: "Thank you! Your medical history has been recorded."
@@ -251,3 +305,4 @@ actions:
   - action_correct_slot
   - action_check_patient_data
   - action_save_patient_data
+  - validate_medical_history_form
