@@ -301,11 +301,11 @@ class ValidateMedicalHistoryForm(FormValidationAction):
         if slot_value == "N/A":
             return {"smoking_duration": slot_value}
             
-        valid_durations = ["1", "2", "3", "4", "5"]
+        valid_durations = ["Less than 1", "1-5", "5-10", "10+"]
         if slot_value in valid_durations:
             return {"smoking_duration": slot_value}
         else:
-            dispatcher.utter_message(text="Please select a valid option (1-5 years).")
+            dispatcher.utter_message(text="Please select a valid option.")
             return {"smoking_duration": None}
 
     async def validate_smoking_frequency(
@@ -321,7 +321,7 @@ class ValidateMedicalHistoryForm(FormValidationAction):
         if slot_value == "N/A":
             return {"smoking_frequency": slot_value}
             
-        valid_frequencies = ["1", "2", "3", "4", "5"]
+        valid_frequencies = ["Less than 5", "5-10", "10-15", "15-20", "20+"]
         if slot_value in valid_frequencies:
             # Get the smoking duration that was already collected
             # Fixed the typo: smoking_infp -> smoking_info
