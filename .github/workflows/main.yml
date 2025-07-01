@@ -20,7 +20,7 @@ jobs:
           ssh-private-key: ${{ secrets.HETZNER_SSH_KEY }}
       - name: Debug SSH
         run: |
-          echo "Testing connection to: 91.99.232.111
+          echo "Testing connection to: 91.99.232.111"
           echo "Using user: ${{ secrets.HETZNER_USER }}"
           ssh -v -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@91.99.232.111 "pwd && whoami"
 
