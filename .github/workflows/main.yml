@@ -21,13 +21,13 @@ jobs:
       - name: Debug SSH
         run: |
           echo "Testing connection to: 91.99.232.111"
-          echo "Using user: ${{ secrets.HETZNER_USER }}"
-          ssh -v -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@91.99.232.111 "pwd && whoami"
+          echo "Using user: root"
+          ssh -v -o StrictHostKeyChecking=no root@91.99.232.111 "pwd && whoami"
 
       - name: Test SSH connection
         run: |
           ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-            ${{ secrets.HETZNER_USER }}@91.99.232.111 \
+            root@91.99.232.111 \
             "echo 'SSH connection successful'"
           
       - name: Copy files to Hetzner
@@ -35,11 +35,11 @@ jobs:
           rsync -az --delete --exclude '.git' --exclude 'node_modules' \
             --exclude '.github' --exclude 'README.md' \
             -e "ssh -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.HETZNER_USER }}@91.99.232.111:/root/app
+            ./ root@91.99.232.111:/root/app
             
       - name: Deploy on Hetzner
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@91.99.232.111 << 'EOF'
+          ssh -o StrictHostKeyChecking=no root@91.99.232.111 << 'EOF'
           cd /root/app
           echo "Pulling latest images..."
           docker compose pull || echo "Pull failed, continuing..."
