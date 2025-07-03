@@ -813,3 +813,112 @@ body {
 .btn-full:hover::before {
     left: 100%;
 }
+
+/* === CUSTOMIZATION SECTION === */
+.customization-section {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: center;
+}
+
+.customization-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    color: white;
+    text-align: center;
+    box-shadow: var(--shadow-xl);
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.customization-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 35px -5px rgb(0 0 0 / 0.15), 0 10px 15px -8px rgb(0 0 0 / 0.1);
+}
+
+.customization-header h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.customization-header p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0 0 1.5rem 0;
+}
+
+.customization-price {
+    margin-bottom: 1.5rem;
+}
+
+.price-range {
+    font-size: 2.25rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.price-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.customization-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+    text-align: left;
+}
+
+.customization-features li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.customization-features li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    color: #10b981;
+    font-weight: bold;
+}
+
+.customization-features li:last-child {
+    border-bottom: none;
+}
+
+.customization-card .btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.customization-card .btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Responsive Design for Customization */
+@media (max-width: 768px) {
+    .customization-card {
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+    
+    .customization-header h3 {
+        font-size: 1.5rem;
+    }
+    
+    .price-range {
+        font-size: 2rem;
+    }
+}
