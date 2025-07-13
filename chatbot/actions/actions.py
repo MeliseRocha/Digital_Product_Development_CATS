@@ -1,7 +1,6 @@
 from typing import Any, Text, Dict, List, Optional
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
-from rasa_sdk.events import SlotSet
 from rasa_sdk.events import SlotSet, ActiveLoop, FollowupAction
 import requests
 from rasa_sdk.forms import FormValidationAction
@@ -125,8 +124,8 @@ class ActionSavePatientData(Action):
             "drug_use": data.get("drug_use"), # column to be created in the database
             "sleep_diet": data.get("sleep_diet"),
             "pregnancy_history": data.get("pregnancy_history"),
-            #"recent_exams": data.get("recent_exams"), # i need to upate this
-            "recent_exams": [], 
+            "recent_exams": data.get("recent_exams"), # i need to upate this
+            #"recent_exams": [], 
             "exams_passwords": data.get("exam_passwords"),
             "recent_hospitalization": data.get("recent_hospitalization_status")
         }
@@ -152,89 +151,129 @@ class ActionCorrectSlot(Action):
             tracker: Tracker,
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
-        last_user_msg = tracker.latest_message.get("text", "").strip().lower()
-        print(f"Last user message: {last_user_msg}")
-        
-        # Complete slot reset map including all slots from your domain.yml
-        slot_reset_map = {
-            "chronic_disease": "chronic_disease",
-            "smoking_info": "smoking_info",
-            "smoking_duration": "smoking_duration",  # Missing slot
-            "smoking_frequency": "smoking_frequency",  # Missing slot
-            "medicine_info": "medicine_info",
-            "hospital_info": "hospital_info",
-            "allergies_info": "allergies_info",
-            "hereditary_disease": "hereditary_disease",
-            "alcohol_info": "alcohol_info",
-            "drug_use": "drug_use",
-            "sleep_diet": "sleep_diet",
-            "pregnancy_history": "pregnancy_history",
-            #"recent_exams": "recent_exams",
-            "imaging_lab_access": "imaging_lab_access",
-            "recent_hospitalization": "recent_hospitalization",
-            "current_lab_url": "current_lab_url",  # Missing slot
-            "current_lab_username": "current_lab_username",  # Missing slot
-            "current_lab_password": "current_lab_password",  # Missing slot
-            "lab_credentials_status": "lab_credentials_status",  # Missing slot
-        }
+        try:
+            last_user_msg = tracker.latest_message.get("text", "").strip().lower()
+            print(f"Last user message: {last_user_msg}")
+            
+            # Also check the intent and payload
+            intent = tracker.latest_message.get("intent", {}).get("name", "")
+            print(f"Intent: {intent}")
+            
+            # Check if there's a payload (from button clicks)
+            payload = tracker.latest_message.get("text", "")
+            print(f"Full payload: {payload}")
+            
+            # FIXED: Complete slot reset map with correct slot names
+            slot_reset_map = {
+                "chronic_disease": "chronic_disease",
+                "smoking_info": "smoking_info",
+                "smoking_duration": "smoking_duration",
+                "smoking_frequency": "smoking_frequency",
+                "medicine_info": "medicine_info",
+                "hospital_info": "hospital_info",
+                "allergies_info": "allergies_info",
+                "hereditary_disease": "hereditary_disease",
+                "alcohol_info": "alcohol_info",
+                "drug_use": "drug_use",
+                "sleep_diet": "sleep_diet",
+                "pregnancy_history": "pregnancy_history",
+                "recent_exams": "recent_exams",
+                "imaging_lab_access": "imaging_lab_access",
+                # FIXED: Use the actual form field name
+                "recent_hospitalization": ["recent_hospitalization","recent_hospitalization_status"],
+                "current_lab_url": "current_lab_url",
+                "current_lab_username": "current_lab_username",
+                "current_lab_password": "current_lab_password",
+                "lab_credentials_status": "lab_credentials_status",
+                "exam_upload_status": "exam_upload_status",
+            }
 
-        # Check if user input matches any slot name
-        if last_user_msg in slot_reset_map:
-            slot_to_reset = slot_reset_map[last_user_msg]
-            
-            # Get current slot value to show what they previously answered
-            current_value = tracker.get_slot(slot_to_reset)
-            print(f"Current value for {slot_to_reset}: {current_value}")
-            
-            # Reset related slots based on dependencies
-            slots_to_reset = [SlotSet(slot_to_reset, None)]
-            
-            # Handle smoking-related slot dependencies
-            if slot_to_reset == "smoking_info":
-                slots_to_reset.extend([
-                    SlotSet("smoking_duration", None),
-                    SlotSet("smoking_frequency", None)
-                ])
-            
-            # Handle lab credentials dependencies
-            if slot_to_reset == "imaging_lab_access":
-                slots_to_reset.extend([
-                    SlotSet("current_lab_url", None),
-                    SlotSet("current_lab_username", None),
-                    SlotSet("current_lab_password", None),
-                    SlotSet("lab_credentials_status", None),
-                    SlotSet("exam_passwords", None)
-                ])
-            
-            # Create message with previous answer
-            field_name = slot_to_reset.replace('_', ' ').title()
-            if current_value:
-                message = f"Your previous answer for {field_name} was: '{current_value}'\n\nI've reset this field. Let's fill it out again."
+            if last_user_msg in slot_reset_map:
+                slot_to_reset = slot_reset_map[last_user_msg]
+                
+               
+                current_value = tracker.get_slot(slot_to_reset)
+                print(f"Current value for {slot_to_reset}: {current_value}")
+                
+                
+                slots_to_reset = [SlotSet(slot_to_reset, None)]
+                
+                if slot_to_reset == "recent_hospitalization":
+                    slots_to_reset.append(SlotSet("recent_hospitalization_status", None))
+                
+             
+                if slot_to_reset == "smoking_info":
+                    slots_to_reset.extend([
+                        SlotSet("smoking_duration", None),
+                        SlotSet("smoking_frequency", None)
+                    ])
+                
+                if slot_to_reset == "imaging_lab_access":
+                    slots_to_reset.extend([
+                        SlotSet("current_lab_url", None),
+                        SlotSet("current_lab_username", None),
+                        SlotSet("current_lab_password", None),
+                        SlotSet("lab_credentials_status", None),
+                        SlotSet("exam_passwords", None)
+                    ])
+                
+               
+                if slot_to_reset == "recent_exams":
+                    slots_to_reset.extend([
+                        SlotSet("exam_upload_status", None)
+                    ])
+                
+               
+                field_name = slot_to_reset.replace('_', ' ').title()
+                if current_value:
+                    message = f"Your previous answer for {field_name} was: '{current_value}'\n\nI've reset this field. Let's fill it out again."
+                else:
+                    message = f"I've reset the {field_name} field. Let's fill it out again."
+                
+                dispatcher.utter_message(text=message)
+                
+                return slots_to_reset + [
+                    ActiveLoop("medical_history_form"),
+                    SlotSet("requested_slot", slot_to_reset), 
+                    FollowupAction("medical_history_form")
+                ]
             else:
-                message = f"I've reset the {field_name} field. Let's fill it out again."
-            
-            dispatcher.utter_message(text=message)
-            
-            return slots_to_reset + [
-                ActiveLoop("medical_history_form"),
-                FollowupAction("medical_history_form")
-            ]
-        else:
-            # Create buttons for all correctable fields
-            buttons = []
-            for slot_name in slot_reset_map.keys():
-                # Skip internal/technical slots from button display
-                if slot_name not in ["smoking_duration", "smoking_frequency", "current_lab_url", 
-                                   "current_lab_username", "current_lab_password", "lab_credentials_status"]:
+                user_facing_fields = [
+                    "chronic_disease",
+                    "smoking_info", 
+                    "medicine_info",
+                    "hospital_info",
+                    "allergies_info",
+                    "hereditary_disease",
+                    "alcohol_info",
+                    "drug_use",
+                    "sleep_diet",
+                    "pregnancy_history",
+                    "imaging_lab_access",
+                ]
+                
+                buttons = []
+                for slot_name in user_facing_fields:
+                    if slot_name == "recent_hospitalization":
+                        display_name = "Recent Hospitalization"
+                    else:
+                        display_name = slot_name.replace("_", " ").title()
+                    
                     buttons.append({
-                        "title": slot_name.replace("_", " ").title(),
+                        "title": display_name,
                         "payload": slot_name
                     })
 
-            dispatcher.utter_message(
-                text="Which field would you like to correct? Please choose one of the options below:",
-                buttons=buttons
-            )
+                dispatcher.utter_message(
+                    text="Which field would you like to correct? Please choose one of the options below:",
+                    buttons=buttons
+                )
+                
+                return []
+                
+        except Exception as e:
+            print(f"Error in ActionCorrectSlot: {str(e)}")
+            dispatcher.utter_message(text="Sorry, there was an error processing your request. Please try again or contact support.")
             return []
 from rasa_sdk.forms import FormValidationAction
 
@@ -271,7 +310,7 @@ class ActionCheckPatientData(Action):
                     dispatcher.utter_message(text="No existing record found. Let's fill out the medical history.")
                     return [SlotSet("patient_id", patient_id), FollowupAction("medical_history_form")]
                 
-                # Handle recent_hospitalization conversion
+              
                 hospitalization_status = data.get("recent_hospitalization")
                 if hospitalization_status is True:
                     hospitalization_text = "Yes"
@@ -281,24 +320,68 @@ class ActionCheckPatientData(Action):
                     hospitalization_text = None
                     hospitalization_status = None
                 
-                # Handle imaging_lab_access based on exam_passwords
-                exam_passwords = data.get("exams_passwords") # this needs to be returned by db
+                
+                exam_passwords = data.get("exams_passwords")
                 if exam_passwords and isinstance(exam_passwords, dict) and exam_passwords:
                     imaging_lab_access = "Yes"
                 else:
                     imaging_lab_access = "No"
                 
-                # Map the JSON keys to your slot names
+                # Parse smoking information
+                smoking_data = data.get("smoking")
+                smoking_info = "No"
+                smoking_duration = "N/A"
+                smoking_frequency = "N/A"
+                
+                if smoking_data:
+                    if smoking_data.lower() == "no":
+                        smoking_info = "No"
+                        smoking_duration = "N/A"
+                        smoking_frequency = "N/A"
+                    else:
+
+                        try:
+                            parts = [part.strip() for part in smoking_data.split('/')]
+                            if len(parts) >= 3:
+                                smoking_status = parts[0].strip()  
+                                duration_part = parts[1].strip() 
+                                frequency_part = parts[2].strip()  
+                                
+                              
+                                if duration_part.endswith(" years"):
+                                    smoking_duration = duration_part[:-6].strip()
+                                else:
+                                    smoking_duration = duration_part
+                                
+                               
+                                if frequency_part.endswith(" cigarettes per day"):
+                                    smoking_frequency = frequency_part[:-19].strip()
+                                else:
+                                    smoking_frequency = frequency_part
+                                
+                                smoking_info = smoking_data 
+                            else:
+                               
+                                smoking_info = smoking_data
+                                smoking_duration = None
+                                smoking_frequency = None
+                        except Exception as e:
+                            print(f"Error parsing smoking data: {e}")
+                            smoking_info = smoking_data
+                            smoking_duration = None
+                            smoking_frequency = None
+                
+               
                 slot_mapping = {
                     "chronic_disease": data.get("chronic_disease"),
-                    "smoking_info": data.get("smoking"),
+                    "smoking_info": smoking_info,
+                    "smoking_duration": smoking_duration,
+                    "smoking_frequency": smoking_frequency,
                     "medicine_info": data.get("medicines"),
-                    # TODO add hospital_info to database
                     "hospital_info": data.get("hospital_history"),
                     "allergies_info": data.get("allergies"),
                     "hereditary_disease": data.get("existing_illness"),
                     "alcohol_info": data.get("alcohol_drug_use"),
-                    # TODO add drug_use to database
                     "drug_use": data.get("drug_use"),
                     "sleep_diet": data.get("sleep_diet"),
                     "pregnancy_history": data.get("pregnancy_history"),
@@ -793,7 +876,6 @@ class ValidateMedicalHistoryForm(FormValidationAction):
 
         dispatcher.utter_message(text="Please let me know if you want to upload more files.")
         return {"exam_upload_status": None}
-
     async def next_slot_to_request(
         self,
         dispatcher: CollectingDispatcher,

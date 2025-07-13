@@ -14,6 +14,8 @@ intents:
   - add_more_credentials  # New intent for adding more lab credentials
   - done_adding_credentials  # New intent to finish adding credentials
 
+
+
 entities:
   - chronic_disease
   - smoking_info
@@ -31,6 +33,7 @@ entities:
   - lab_username 
   - lab_url  # New entity for lab URLs
   - lab_password  # New entity for lab passwords
+  - recent_hospitalization
 
 slots:
   patient_id:
@@ -291,8 +294,6 @@ slots:
         conditions:
           - active_loop: medical_history_form
             requested_slot: exam_upload_status
-
-
   
   recent_hospitalization:
     type: text
