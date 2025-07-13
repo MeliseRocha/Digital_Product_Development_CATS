@@ -1,6 +1,7 @@
 /*
 Makes backend API call to rasa chatbot and display output to chatbot frontend
 Enhanced with JWT token handling from URL parameters and automatic file upload
+Option 2: Sends /restart command on every page load
 */
 
 function init() {
@@ -82,11 +83,16 @@ function init() {
     fileUpload = document.querySelector("#fileUpload")
     root = document.documentElement;
     chatPopup.style.display = "none"
-    //var host = "http://localhost:5005/webhooks/rest/webhook";
-    var host = "http://91.99.232.111:5005/webhooks/rest/webhook"
+    var host = "http://localhost:5005/webhooks/rest/webhook";
+    //var host = "http://91.99.232.111:5005/webhooks/rest/webhook"
 
     // File upload event listener
     fileUpload.addEventListener('change', handleFileUpload);
+
+    // Send restart command on page load
+    setTimeout(() => {
+        sendRestartCommand();
+    }, 1000); // Wait 1 second to ensure jQuery is loaded
 
     //------------------------ ChatBot Toggler -------------------------
 
@@ -135,6 +141,36 @@ function init() {
         }
 
     })
+}
+
+// Function to send restart command to Rasa
+function sendRestartCommand() {
+    const restartData = {
+        "message": "/restart",
+        "sender": "User"
+    };
+    
+    // Add JWT token if available
+    if (jwtToken) {
+        restartData.metadata = {
+            "jwt_token": jwtToken,
+            "authorization": `Bearer ${jwtToken}`
+        };
+    }
+    
+    $.ajax({
+        url: host,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(restartData),
+        success: function(data, textStatus) {
+            console.log("Session restarted successfully on page load");
+            // Don't display restart response to user
+        },
+        error: function(errorMessage) {
+            console.log('Restart failed on page load: ' + errorMessage);
+        }
+    });
 }
 
 // Function to extract JWT token from URL parameters
