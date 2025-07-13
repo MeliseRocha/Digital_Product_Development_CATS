@@ -169,13 +169,14 @@ class ActionCorrectSlot(Action):
             "drug_use": "drug_use",
             "sleep_diet": "sleep_diet",
             "pregnancy_history": "pregnancy_history",
-            #"recent_exams": "recent_exams",
+            "recent_exams": "recent_exams",  # Re-enabled this slot
             "imaging_lab_access": "imaging_lab_access",
             "recent_hospitalization": "recent_hospitalization",
             "current_lab_url": "current_lab_url",  # Missing slot
             "current_lab_username": "current_lab_username",  # Missing slot
             "current_lab_password": "current_lab_password",  # Missing slot
             "lab_credentials_status": "lab_credentials_status",  # Missing slot
+            "exam_upload_status": "exam_upload_status",  # Added missing slot
         }
 
         # Check if user input matches any slot name
@@ -206,6 +207,18 @@ class ActionCorrectSlot(Action):
                     SlotSet("exam_passwords", None)
                 ])
             
+            # Handle recent hospitalization dependencies
+            if slot_to_reset == "recent_hospitalization":
+                slots_to_reset.extend([
+                    SlotSet("recent_hospitalization_status", None)
+                ])
+            
+            # Handle recent exams dependencies
+            if slot_to_reset == "recent_exams":
+                slots_to_reset.extend([
+                    SlotSet("exam_upload_status", None)
+                ])
+            
             # Create message with previous answer
             field_name = slot_to_reset.replace('_', ' ').title()
             if current_value:
@@ -225,7 +238,8 @@ class ActionCorrectSlot(Action):
             for slot_name in slot_reset_map.keys():
                 # Skip internal/technical slots from button display
                 if slot_name not in ["smoking_duration", "smoking_frequency", "current_lab_url", 
-                                   "current_lab_username", "current_lab_password", "lab_credentials_status"]:
+                                   "current_lab_username", "current_lab_password", "lab_credentials_status", 
+                                   "exam_upload_status"]:
                     buttons.append({
                         "title": slot_name.replace("_", " ").title(),
                         "payload": slot_name
