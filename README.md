@@ -320,23 +320,6 @@ graph TB
 
 # CHATBOT Details: 
 
-# Medical Pre-Anamnesis Chatbot
-
-A conversational AI system designed to collect comprehensive medical history data from patients before their appointments. The chatbot streamlines the pre-anamnesis process by gathering essential patient information through structured conversations.
-
-## Overview
-
-This medical chatbot is built using the Rasa framework and deployed on Hetzner infrastructure. It serves as a digital assistant that collects patient medical history data including chronic diseases, medications, allergies, lifestyle factors, and recent medical examinations. The system supports both new patient data collection and returning patient data updates.
-
-## Key Features
-
-- **Intelligent Data Collection**: Gathers comprehensive medical history through conversational flow
-- **Patient Authentication**: JWT-based authentication with secure patient identification
-- **Conditional Logic**: Adapts questions based on patient responses (e.g., skips pregnancy questions for male patients)
-- **File Upload Support**: Allows patients to upload medical exam results and imaging reports
-- **Lab Credential Management**: Securely collects imaging lab access credentials for doctor review
-- **Data Persistence**: Integrates with backend API for storing and retrieving patient data
-- **Update Capability**: Returning patients can review and update existing information
 
 ## Core Configuration Files
 
@@ -396,24 +379,7 @@ The `actions.py` file contains custom business logic actions:
 - Handles conditional question flows (smoking habits, lab credentials)
 - Manages file uploads and credential collection
 
-## Patient Flow
 
-1. **Authentication**: Patient accesses chatbot through secure JWT-enabled link
-2. **Data Check**: System verifies if patient has existing medical history
-3. **Information Collection**: Guided conversation through medical history topics
-4. **File Management**: Upload of medical exam results and imaging reports
-5. **Lab Access**: Optional sharing of imaging lab credentials for doctor access
-6. **Review & Correction**: Patient reviews all collected information
-7. **Final Submission**: Confirmed data is saved to the medical database
-
-## Technical Implementation
-
-- **Framework**: Rasa 3.1
-- **Deployment**: Hetzner Cloud Infrastructure
-- **Authentication**: JWT token-based patient verification
-- **Database Integration**: RESTful API communication
-- **File Handling**: Support for medical document uploads
-- **Security**: Encrypted credential storage and secure data transmission
 
 ## Usage
 
