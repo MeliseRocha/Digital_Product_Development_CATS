@@ -155,17 +155,22 @@ class ActionCorrectSlot(Action):
         last_user_msg = tracker.latest_message.get("text", "").strip().lower()
         button_payload = tracker.latest_message.get("intent", {}).get("name")
         
-        print(f"Last user message: '{last_user_msg}'")
-        print(f"Button payload/intent: '{button_payload}'")
-        print(f"Full latest message: {tracker.latest_message}")
-        print(f"Available slot keys: {list(slot_reset_map.keys())}")
+        # Also check for payload in the button click
+        payload_from_button = None
+        if tracker.latest_message.get("parse_data"):
+            payload_from_button = tracker.latest_message.get("parse_data", {}).get("intent", {}).get("name")
+        
+        print(f"DEBUG: Last user message: '{last_user_msg}'")
+        print(f"DEBUG: Button payload/intent: '{button_payload}'") 
+        print(f"DEBUG: Payload from button: '{payload_from_button}'")
+        print(f"DEBUG: Full latest message: {tracker.latest_message}")
         
         # Complete slot reset map including all slots from your domain.yml
         slot_reset_map = {
             "chronic_disease": "chronic_disease",
             "smoking_info": "smoking_info",
-            "smoking_duration": "smoking_duration",  # Missing slot
-            "smoking_frequency": "smoking_frequency",  # Missing slot
+            "smoking_duration": "smoking_duration",
+            "smoking_frequency": "smoking_frequency",
             "medicine_info": "medicine_info",
             "hospital_info": "hospital_info",
             "allergies_info": "allergies_info",
@@ -174,46 +179,93 @@ class ActionCorrectSlot(Action):
             "drug_use": "drug_use",
             "sleep_diet": "sleep_diet",
             "pregnancy_history": "pregnancy_history",
-            "recent_exams": "recent_exams",  # Re-enabled this slot
+            "recent_exams": "recent_exams",
             "imaging_lab_access": "imaging_lab_access",
             "recent_hospitalization": "recent_hospitalization",
-            "current_lab_url": "current_lab_url",  # Missing slot
-            "current_lab_username": "current_lab_username",  # Missing slot
-            "current_lab_password": "current_lab_password",  # Missing slot
-            "lab_credentials_status": "lab_credentials_status",  # Missing slot
-            "exam_upload_status": "exam_upload_status",  # Added missing slot
+            "current_lab_url": "current_lab_url",
+            "current_lab_username": "current_lab_username",
+            "current_lab_password": "current_lab_password",
+            "lab_credentials_status": "lab_credentials_status",
+            "exam_upload_status": "exam_upload_status",
         }
 
-        # Check if user input matches any slot name (exact match or button payload)
-        matched_slot = None
-        
-        # First try exact match with typed text (for button payloads and direct typing)
-        if last_user_msg in slot_reset_map:
-            matched_slot = last_user_msg
-            print(f"Exact text match found: {matched_slot}")
+        print(f"Available slot keys: {list(slot_reset_map.keys())}")
+
+        # Check if we're in a correction confirmation flow
+        pending_correction = tracker.get_slot("pending_correction_slot")
+        print(f"DEBUG: Pending correction slot: {pending_correction}")
+
+        # If user confirms with /affirm and we have a pending correction
+        if (button_payload == "affirm" or payload_from_button == "affirm") and pending_correction and pending_correction in slot_reset_map:
+            matched_slot = pending_correction
+            print(f"DEBUG: Using pending correction slot: {matched_slot}")
         else:
-            # Try fuzzy matching for common variations
-            for slot_key in slot_reset_map.keys():
-                # Check if user typed the human-readable version like "Recent Hospitalization"
-                human_readable = slot_key.replace("_", " ").lower()
-                title_case = slot_key.replace("_", " ").title().lower()
-                
-                if (human_readable == last_user_msg or 
-                    title_case == last_user_msg or
-                    slot_key.replace("_", "") == last_user_msg.replace(" ", "")):
-                    matched_slot = slot_key
-                    print(f"Fuzzy match found: {matched_slot} for input: {last_user_msg}")
-                    break
+            # Check if user input matches any slot name (exact match or button payload)
+            matched_slot = None
+            
+            # First try exact match with typed text (for button payloads and direct typing)
+            if last_user_msg in slot_reset_map:
+                matched_slot = last_user_msg
+                print(f"DEBUG: Exact text match found: {matched_slot}")
+            # Also check if the text itself is a slot name sent as payload
+            elif button_payload and button_payload in slot_reset_map:
+                matched_slot = button_payload
+                print(f"DEBUG: Button payload match found: {matched_slot}")
+            elif payload_from_button and payload_from_button in slot_reset_map:
+                matched_slot = payload_from_button
+                print(f"DEBUG: Parse data payload match found: {matched_slot}")
+            else:
+                # Try fuzzy matching for common variations
+                for slot_key in slot_reset_map.keys():
+                    # Check if user typed the human-readable version like "Recent Hospitalization"
+                    human_readable = slot_key.replace("_", " ").lower()
+                    title_case = slot_key.replace("_", " ").title().lower()
+                    
+                    if (human_readable == last_user_msg or 
+                        title_case == last_user_msg or
+                        slot_key.replace("_", "") == last_user_msg.replace(" ", "") or
+                        button_payload == slot_key or
+                        payload_from_button == slot_key):
+                        matched_slot = slot_key
+                        print(f"DEBUG: Fuzzy match found: {matched_slot} for input: {last_user_msg}")
+                        break
 
         if matched_slot:
             slot_to_reset = slot_reset_map[matched_slot]
             
             # Get current slot value to show what they previously answered
             current_value = tracker.get_slot(slot_to_reset)
-            print(f"Current value for {slot_to_reset}: {current_value}")
+            print(f"DEBUG: Current value for {slot_to_reset}: {current_value}")
+            
+            # For users whose buttons work properly (send slot names directly), skip confirmation
+            if (button_payload and button_payload in slot_reset_map) or (payload_from_button and payload_from_button in slot_reset_map):
+                print(f"DEBUG: Direct button match - skipping confirmation")
+                # Skip confirmation and reset directly
+                pass
+            # If this is the initial request (not a confirmation), ask for confirmation
+            elif not pending_correction and button_payload != "affirm" and payload_from_button != "affirm":
+                field_name = slot_to_reset.replace('_', ' ').title()
+                if current_value:
+                    message = f"Your current answer for {field_name} is: '{current_value}'\n\nDo you want to correct this field?"
+                else:
+                    message = f"Do you want to correct the {field_name} field?"
+                
+                # Create confirmation buttons
+                buttons = [
+                    {"title": "Yes, correct it", "payload": "/affirm"},
+                    {"title": "No, keep it", "payload": "/deny"}
+                ]
+                
+                dispatcher.utter_message(text=message, buttons=buttons)
+                
+                # Store which slot we're about to correct
+                return [SlotSet("pending_correction_slot", matched_slot)]
             
             # Reset related slots based on dependencies
-            slots_to_reset = [SlotSet(slot_to_reset, None)]
+            slots_to_reset = [
+                SlotSet(slot_to_reset, None),
+                SlotSet("pending_correction_slot", None)  # Clear the pending correction
+            ]
             
             # Handle smoking-related slot dependencies
             if slot_to_reset == "smoking_info":
@@ -246,10 +298,7 @@ class ActionCorrectSlot(Action):
             
             # Create message with previous answer
             field_name = slot_to_reset.replace('_', ' ').title()
-            if current_value:
-                message = f"Your previous answer for {field_name} was: '{current_value}'\n\nI've reset this field. Let's fill it out again."
-            else:
-                message = f"I've reset the {field_name} field. Let's fill it out again."
+            message = f"I've reset the {field_name} field. Let's fill it out again."
             
             dispatcher.utter_message(text=message)
             
@@ -257,15 +306,27 @@ class ActionCorrectSlot(Action):
                 ActiveLoop("medical_history_form"),
                 FollowupAction("medical_history_form")
             ]
+        
+        # Handle denial of correction
+        elif (button_payload == "deny" or payload_from_button == "deny") and pending_correction:
+            dispatcher.utter_message(text="Okay, I'll keep the current answer. Is there anything else you'd like to correct?")
+            return [SlotSet("pending_correction_slot", None)]
+        
         else:
-            print(f"No match found for '{last_user_msg}'")
+            print(f"DEBUG: No match found for '{last_user_msg}' with button_payload '{button_payload}' and payload_from_button '{payload_from_button}'")
+            
+            # If we have a pending correction but no confirmation, clear it and show options
+            if pending_correction:
+                print(f"DEBUG: Clearing pending correction and showing field selection")
+                return [SlotSet("pending_correction_slot", None)]
+            
             # Create buttons for all correctable fields
             buttons = []
             for slot_name in slot_reset_map.keys():
                 # Skip internal/technical slots from button display
                 if slot_name not in ["smoking_duration", "smoking_frequency", "current_lab_url", 
                                    "current_lab_username", "current_lab_password", "lab_credentials_status", 
-                                   "exam_upload_status"]:
+                                   "exam_upload_status", "pending_correction_slot"]:
                     buttons.append({
                         "title": slot_name.replace("_", " ").title(),
                         "payload": slot_name
@@ -275,7 +336,7 @@ class ActionCorrectSlot(Action):
                 text="Which field would you like to correct? Please choose one of the options below or type the exact field name:",
                 buttons=buttons
             )
-            return []
+            return [SlotSet("pending_correction_slot", None)]
 from rasa_sdk.forms import FormValidationAction
 
 class ActionCheckPatientData(Action):

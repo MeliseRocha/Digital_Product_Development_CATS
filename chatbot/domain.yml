@@ -11,8 +11,8 @@ intents:
   - no_results
   - upload_more_files
   - no_more_files
-  - add_more_credentials  # New intent for adding more lab credentials
-  - done_adding_credentials  # New intent to finish adding credentials
+  - add_more_credentials # New intent for adding more lab credentials
+  - done_adding_credentials # New intent to finish adding credentials
 
 entities:
   - chronic_disease
@@ -28,21 +28,21 @@ entities:
   - recent_exams
   - imaging_lab_access
   - file_info
-  - lab_username 
-  - lab_url  # New entity for lab URLs
-  - lab_password  # New entity for lab passwords
+  - lab_username
+  - lab_url # New entity for lab URLs
+  - lab_password # New entity for lab passwords
 
 slots:
   patient_id:
     type: text
     mappings: []
     influence_conversation: false
-    
+
   gender:
     type: text
     mappings: []
     influence_conversation: false
-    
+
   token:
     type: text
     mappings: []
@@ -184,7 +184,7 @@ slots:
         conditions:
           - active_loop: medical_history_form
             requested_slot: medicine_info
-        
+
   hospital_info:
     type: text
     mappings:
@@ -192,7 +192,7 @@ slots:
         conditions:
           - active_loop: medical_history_form
             requested_slot: hospital_info
-        
+
   allergies_info:
     type: text
     mappings:
@@ -292,8 +292,11 @@ slots:
           - active_loop: medical_history_form
             requested_slot: exam_upload_status
 
+  pending_correction_slot:
+    type: text
+    mappings: []
+    influence_conversation: false
 
-  
   recent_hospitalization:
     type: text
     mappings:
@@ -325,7 +328,6 @@ forms:
       - current_lab_url
       - lab_credentials_status
       - exam_upload_status
-    
 
 responses:
   utter_intro:
