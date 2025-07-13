@@ -153,7 +153,12 @@ class ActionCorrectSlot(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
 
         last_user_msg = tracker.latest_message.get("text", "").strip().lower()
-        print(f"Last user message: {last_user_msg}")
+        button_payload = tracker.latest_message.get("intent", {}).get("name")
+        
+        print(f"Last user message: '{last_user_msg}'")
+        print(f"Button payload/intent: '{button_payload}'")
+        print(f"Full latest message: {tracker.latest_message}")
+        print(f"Available slot keys: {list(slot_reset_map.keys())}")
         
         # Complete slot reset map including all slots from your domain.yml
         slot_reset_map = {
@@ -179,9 +184,29 @@ class ActionCorrectSlot(Action):
             "exam_upload_status": "exam_upload_status",  # Added missing slot
         }
 
-        # Check if user input matches any slot name
+        # Check if user input matches any slot name (exact match or button payload)
+        matched_slot = None
+        
+        # First try exact match with typed text (for button payloads and direct typing)
         if last_user_msg in slot_reset_map:
-            slot_to_reset = slot_reset_map[last_user_msg]
+            matched_slot = last_user_msg
+            print(f"Exact text match found: {matched_slot}")
+        else:
+            # Try fuzzy matching for common variations
+            for slot_key in slot_reset_map.keys():
+                # Check if user typed the human-readable version like "Recent Hospitalization"
+                human_readable = slot_key.replace("_", " ").lower()
+                title_case = slot_key.replace("_", " ").title().lower()
+                
+                if (human_readable == last_user_msg or 
+                    title_case == last_user_msg or
+                    slot_key.replace("_", "") == last_user_msg.replace(" ", "")):
+                    matched_slot = slot_key
+                    print(f"Fuzzy match found: {matched_slot} for input: {last_user_msg}")
+                    break
+
+        if matched_slot:
+            slot_to_reset = slot_reset_map[matched_slot]
             
             # Get current slot value to show what they previously answered
             current_value = tracker.get_slot(slot_to_reset)
@@ -233,6 +258,7 @@ class ActionCorrectSlot(Action):
                 FollowupAction("medical_history_form")
             ]
         else:
+            print(f"No match found for '{last_user_msg}'")
             # Create buttons for all correctable fields
             buttons = []
             for slot_name in slot_reset_map.keys():
@@ -246,7 +272,7 @@ class ActionCorrectSlot(Action):
                     })
 
             dispatcher.utter_message(
-                text="Which field would you like to correct? Please choose one of the options below:",
+                text="Which field would you like to correct? Please choose one of the options below or type the exact field name:",
                 buttons=buttons
             )
             return []
