@@ -124,7 +124,7 @@ class ActionSavePatientData(Action):
             "drug_use": data.get("drug_use"), # column to be created in the database
             "sleep_diet": data.get("sleep_diet"),
             "pregnancy_history": data.get("pregnancy_history"),
-            "recent_exams": data.get("recent_exams"), # i need to upate this
+            "recent_exams": str(data.get("recent_exams")), # i need to upate this
             #"recent_exams": [], 
             "exams_passwords": data.get("exam_passwords"),
             "recent_hospitalization": data.get("recent_hospitalization_status")
@@ -782,69 +782,68 @@ class ValidateMedicalHistoryForm(FormValidationAction):
         }
         
     async def validate_recent_exams(
-            self,
-            slot_value: Any,
-            dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: DomainDict,
-        ) -> Dict[Text, Any]:
-            """Validate recent exam uploads and trigger follow-up for more uploads"""
+        self,
+        slot_value: Any,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: DomainDict,
+    ) -> Dict[Text, Any]:
+        """Validate recent exam uploads and trigger follow-up for more uploads"""
 
-            intent = tracker.latest_message.get('intent', {}).get('name')
-            text = tracker.latest_message.get("text", "").lower()
+        intent = tracker.latest_message.get('intent', {}).get('name')
+        text = tracker.latest_message.get("text", "").lower()
+        
+        # Get current exam list from slot or initialize empty list
+        current_exams = tracker.get_slot("recent_exams") or []
+        if isinstance(current_exams, str):
+            if current_exams == "No results available":
+                current_exams = []
+            else:
+                current_exams = [current_exams]
+
+        # Convert to a set temporarily to prevent duplicates
+        current_exam_set = set(current_exams)
+
+        # Handle "no results"
+        if intent == "no_results" or "no results" in text or slot_value == "no_results":
+            return {
+                "recent_exams": [],
+                "exam_upload_status": "done"
+            }
+
+        # Handle file upload intent or uploaded files message
+        if (intent in ["upload_files", "upload_more_files"] or 
+            "uploaded files" in text or 
+            "uploaded successfully" in text or
+            slot_value in ["upload_files", "upload_more_files"]):
             
-            # Get current exam list from slot or initialize empty list
-            current_exams = tracker.get_slot("recent_exams") or []
-            if isinstance(current_exams, str):
-                # If it's a string, convert to list or handle accordingly
-                if current_exams == "No results available":
-                    current_exams = []
+            if slot_value and slot_value not in ["upload_files", "upload_more_files"]:
+                if isinstance(slot_value, list):
+                    current_exam_set.update(slot_value)
                 else:
-                    current_exams = [current_exams]
+                    current_exam_set.add(slot_value)
 
-            # Handle "no results"
-            if intent == "no_results" or "no results" in text or slot_value == "no_results":
-                return {
-                    "recent_exams": [],  # Empty list instead of string
-                    "exam_upload_status": "done"
-                }
+            return {
+                "recent_exams": list(current_exam_set),
+                "exam_upload_status": None
+            }
 
-            # Handle file upload intent or uploaded files message
-            if (intent in ["upload_files", "upload_more_files"] or 
-                "uploaded files" in text or 
-                "uploaded successfully" in text or
-                slot_value in ["upload_files", "upload_more_files"]):
-                
-                # Add new upload to the list
-                if slot_value and slot_value not in ["upload_files", "upload_more_files"]:
-                    # If slot_value contains actual file info, add it to the list
-                    if isinstance(slot_value, list):
-                        current_exams.extend(slot_value)
-                    else:
-                        current_exams.append(slot_value)
-                
-                return {
-                    "recent_exams": current_exams,
-                    "exam_upload_status": None   # Force bot to ask "Do you want to upload more?"
-                }
+        # Handle any text input that might indicate file upload completion
+        if any(word in text for word in ["file", "upload", "exam", "result", "test"]):
+            if slot_value:
+                if isinstance(slot_value, list):
+                    current_exam_set.update(slot_value)
+                else:
+                    current_exam_set.add(slot_value)
 
-            # Handle any other text input that might indicate file upload completion
-            if any(word in text for word in ["file", "upload", "exam", "result", "test"]):
-                # If slot_value contains file information, add it to the list
-                if slot_value:
-                    if isinstance(slot_value, list):
-                        current_exams.extend(slot_value)
-                    elif slot_value not in current_exams:
-                        current_exams.append(slot_value)
-                
-                return {
-                    "recent_exams": current_exams,
-                    "exam_upload_status": None   # Force bot to ask "Do you want to upload more?"
-                }
+            return {
+                "recent_exams": list(current_exam_set),
+                "exam_upload_status": None
+            }
 
-            # Fallback
-            dispatcher.utter_message(text="Please upload your exam results or choose an option.")
-            return {"recent_exams": None}
+        # Fallback
+        dispatcher.utter_message(text="Please upload your exam results or choose an option.")
+        return {"recent_exams": None}
 
     async def validate_exam_upload_status(
         self,
